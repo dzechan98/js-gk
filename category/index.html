@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Categories Manager</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Book Categories Manager</h1>
+
+        <!-- Category Form -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <form id="categoryForm" class="space-y-4">
+                <input type="hidden" id="categoryId">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Category Name</label>
+                    <input type="text" id="categoryName" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <button type="submit" id="saveCategory"
+                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition">
+                    Add Category
+                </button>
+            </form>
+        </div>
+
+        <!-- Categories List -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4">Categories</h2>
+            <div id="categoriesContainer" class="space-y-2">
+                <!-- Categories will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Category Books Modal -->
+        <div id="booksModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold" id="modalCategoryName"></h3>
+                        <button onclick="closeBooksModal()" class="text-gray-500 hover:text-gray-700 text-2xl">
+                            &times;
+                        </button>
+                    </div>
+
+                    <!-- Add Book Form -->
+                    <form id="bookForm" class="mb-6 space-y-4">
+                        <input type="hidden" id="selectedCategoryId">
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Book Title</label>
+                                <input type="text" id="bookTitle" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Author</label>
+                                <input type="text" id="bookAuthor" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition">
+                            Add Book
+                        </button>
+                    </form>
+
+                    <!-- Books List -->
+                    <div id="booksContainer" class="space-y-2">
+                        <!-- Books will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration (Replace with your config)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+            authDomain: "qltv-7c9be.firebaseapp.com",
+            projectId: "qltv-7c9be",
+            storageBucket: "qltv-7c9be.firebasestorage.app",
+            messagingSenderId: "411515029850",
+            appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // DOM Elements
+        const categoryForm = document.getElementById('categoryForm');
+        const categoryId = document.getElementById('categoryId');
+        const categoryName = document.getElementById('categoryName');
+        const saveCategory = document.getElementById('saveCategory');
+        const categoriesContainer = document.getElementById('categoriesContainer');
+        const booksModal = document.getElementById('booksModal');
+        const bookForm = document.getElementById('bookForm');
+        const selectedCategoryId = document.getElementById('selectedCategoryId');
+        const bookTitle = document.getElementById('bookTitle');
+        const bookAuthor = document.getElementById('bookAuthor');
+        const booksContainer = document.getElementById('booksContainer');
+
+        // Real-time Categories Listener
+        db.collection('categories').onSnapshot(snapshot => {
+            categoriesContainer.innerHTML = '';
+            snapshot.forEach(doc => {
+                const category = doc.data();
+                const categoryElement = `
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-md">
+                    <span class="font-medium">${category.name}</span>
+                    <div class="space-x-2">
+                        <button onclick="showBooks('${doc.id}', '${category.name}')" 
+                                class="text-green-600 hover:text-green-800">
+                            View Books
+                        </button>
+                        <button onclick="editCategory('${doc.id}')" 
+                                class="text-blue-600 hover:text-blue-800">
+                            Edit
+                        </button>
+                        <button onclick="deleteCategory('${doc.id}')" 
+                                class="text-red-600 hover:text-red-800">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+                categoriesContainer.innerHTML += categoryElement;
+            });
+        });
+
+        // Category Form Submit
+        categoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = categoryName.value.trim();
+
+            if (categoryId.value) {
+                // Update existing category
+                await db.collection('categories').doc(categoryId.value).update({ name });
+            } else {
+                // Add new category
+                await db.collection('categories').add({ name });
+            }
+
+            categoryForm.reset();
+            categoryId.value = '';
+        });
+
+        // Edit Category
+        async function editCategory(id) {
+            const doc = await db.collection('categories').doc(id).get();
+            categoryId.value = id;
+            categoryName.value = doc.data().name;
+            saveCategory.textContent = 'Update Category';
+            categoryName.focus();
+        }
+
+        // Delete Category
+        async function deleteCategory(id) {
+            if (confirm('Delete this category and all its books?')) {
+                // Delete category
+                await db.collection('categories').doc(id).delete();
+
+                // Delete associated books
+                const booksSnapshot = await db.collection('books').where('categoryId', '==', id).get();
+                booksSnapshot.forEach(async doc => {
+                    await db.collection('books').doc(doc.id).delete();
+                });
+            }
+        }
+
+        // Show Books Modal
+        function showBooks(categoryId, categoryName) {
+            booksModal.classList.remove('hidden');
+            document.getElementById('modalCategoryName').textContent = categoryName;
+            selectedCategoryId.value = categoryId;
+
+            // Load books
+            db.collection('books').where('categoryId', '==', categoryId).onSnapshot(snapshot => {
+                booksContainer.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const book = doc.data();
+                    const bookElement = `
+                    <div class="flex justify-between items-center bg-gray-50 p-3 rounded-md">
+                        <div>
+                            <span class="font-medium">${book.title}</span>
+                            <span class="text-gray-600 ml-2">by ${book.author}</span>
+                        </div>
+                        <button onclick="deleteBook('${doc.id}')" 
+                                class="text-red-600 hover:text-red-800">
+                            Delete
+                        </button>
+                    </div>
+                `;
+                    booksContainer.innerHTML += bookElement;
+                });
+            });
+        }
+
+        // Add Book
+        bookForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await db.collection('books').add({
+                title: bookTitle.value.trim(),
+                author: bookAuthor.value.trim(),
+                categoryId: selectedCategoryId.value,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            bookForm.reset();
+        });
+
+        // Delete Book
+        async function deleteBook(id) {
+            if (confirm('Delete this book?')) {
+                await db.collection('books').doc(id).delete();
+            }
+        }
+
+        // Close Modal
+        function closeBooksModal() {
+            booksModal.classList.add('hidden');
+            booksContainer.innerHTML = '';
+        }
+    </script>
+</body>
+
+</html>

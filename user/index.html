@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User CRUD</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <!-- User Form -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-bold mb-4">User Form</h2>
+            <form id="userForm" class="space-y-4">
+                <input type="hidden" id="userId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" id="firstName" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" id="lastName" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Age</label>
+                        <input type="number" id="age" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="email" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                        Save
+                    </button>
+                    <button type="button" onclick="resetForm()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4">User List</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Age</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable" class="bg-white divide-y divide-gray-200">
+                        <!-- Users will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+            authDomain: "qltv-7c9be.firebaseapp.com",
+            projectId: "qltv-7c9be",
+            storageBucket: "qltv-7c9be.firebasestorage.app",
+            messagingSenderId: "411515029850",
+            appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Reference to users collection
+        const usersCollection = db.collection("users");
+
+        // Form submit handler
+        document.getElementById("userForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const userId = document.getElementById("userId").value;
+            const userData = {
+                firstName: document.getElementById("firstName").value,
+                lastName: document.getElementById("lastName").value,
+                age: parseInt(document.getElementById("age").value),
+                email: document.getElementById("email").value
+            };
+
+            try {
+                if (userId) {
+                    // Update existing user
+                    await usersCollection.doc(userId).update(userData);
+                } else {
+                    // Add new user
+                    await usersCollection.add(userData);
+                }
+                resetForm();
+            } catch (error) {
+                console.error("Error saving user: ", error);
+                alert("Error saving user!");
+            }
+        });
+
+        // Read users in real-time
+        usersCollection.onSnapshot((snapshot) => {
+            const usersTable = document.getElementById("usersTable");
+            usersTable.innerHTML = "";
+
+            snapshot.forEach((doc) => {
+                const user = doc.data();
+                const row = `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">${user.firstName} ${user.lastName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${user.age}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button onclick="editUser('${doc.id}')" class="text-blue-600 hover:text-blue-900">Edit</button>
+                            <button onclick="deleteUser('${doc.id}')" class="text-red-600 hover:text-red-900 ml-2">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                usersTable.innerHTML += row;
+            });
+        });
+
+        // Edit user
+        window.editUser = async (id) => {
+            const doc = await usersCollection.doc(id).get();
+            const user = doc.data();
+            
+            document.getElementById("userId").value = id;
+            document.getElementById("firstName").value = user.firstName;
+            document.getElementById("lastName").value = user.lastName;
+            document.getElementById("age").value = user.age;
+            document.getElementById("email").value = user.email;
+        };
+
+        // Delete user
+        window.deleteUser = async (id) => {
+            if (confirm("Are you sure you want to delete this user?")) {
+                try {
+                    await usersCollection.doc(id).delete();
+                } catch (error) {
+                    console.error("Error deleting user: ", error);
+                    alert("Error deleting user!");
+                }
+            }
+        };
+
+        // Reset form
+        window.resetForm = () => {
+            document.getElementById("userForm").reset();
+            document.getElementById("userId").value = "";
+        };
+    </script>
+</body>
+</html>
