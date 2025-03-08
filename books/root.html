@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-6xl mx-auto">
+      <!-- Form thêm sách -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Thêm sách mới</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            id="title"
+            placeholder="Tên sách"
+            class="p-2 border rounded-lg"
+          />
+          <input
+            type="text"
+            id="author"
+            placeholder="Tác giả"
+            class="p-2 border rounded-lg"
+          />
+          <select id="genre" class="p-2 border rounded-lg">
+            <option value="">Chọn thể loại</option>
+          </select>
+          <input
+            type="number"
+            id="price"
+            placeholder="Giá tiền"
+            class="p-2 border rounded-lg"
+          />
+          <input
+            type="text"
+            id="imageUrl"
+            placeholder="URL hình ảnh"
+            class="p-2 border rounded-lg"
+          />
+          <textarea
+            id="description"
+            placeholder="Mô tả"
+            class="p-2 border rounded-lg col-span-2"
+            rows="3"
+          ></textarea>
+          <button
+            onclick="addBook()"
+            class="bg-blue-500 text-white px-6 py-2 rounded-lg col-span-2"
+          >
+            <i class="fas fa-plus mr-2"></i>Thêm sách
+          </button>
+        </div>
+      </div>
+
+      <!-- Danh sách sách -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-4 border-b flex justify-between items-center">
+          <h2 class="text-xl font-semibold">Danh sách sách</h2>
+          <div class="flex items-center">
+            <span id="status" class="text-gray-500 text-sm mr-4 hidden">
+              <i class="fas fa-sync-alt fa-spin mr-1"></i> Đồng bộ dữ liệu...
+            </span>
+            <button
+              onclick="loadBooks()"
+              class="text-blue-500 hover:text-blue-600"
+            >
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="p-3 text-left">Ảnh</th>
+                <th class="p-3 text-left">Tên sách</th>
+                <th class="p-3 text-left">Tác giả</th>
+                <th class="p-3 text-left">Thể loại</th>
+                <th class="p-3 text-left">Giá</th>
+                <th class="p-3 text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="bookList" class="divide-y">
+              <tr id="loading">
+                <td colspan="6" class="p-4 text-center text-gray-500">
+                  <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal chỉnh sửa -->
+    <div
+      id="editModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center"
+    >
+      <div class="bg-white rounded-lg p-6 w-96">
+        <h3 class="text-lg font-semibold mb-4">Chỉnh sửa sách</h3>
+        <div class="space-y-3">
+          <input
+            type="text"
+            id="editTitle"
+            class="w-full p-2 border rounded"
+            placeholder="Tên sách"
+          />
+          <input
+            type="text"
+            id="editAuthor"
+            class="w-full p-2 border rounded"
+            placeholder="Tác giả"
+          />
+          <select id="editGenre" class="w-full p-2 border rounded">
+            <option value="">Chọn thể loại</option>
+          </select>
+          <input
+            type="number"
+            id="editPrice"
+            class="w-full p-2 border rounded"
+            placeholder="Giá tiền"
+          />
+          <input
+            type="text"
+            id="editImageUrl"
+            class="w-full p-2 border rounded"
+            placeholder="URL hình ảnh"
+          />
+          <textarea
+            id="editDescription"
+            class="w-full p-2 border rounded"
+            rows="3"
+            placeholder="Mô tả"
+          ></textarea>
+        </div>
+        <div class="flex justify-end gap-2 mt-4">
+          <button
+            onclick="closeEditModal()"
+            class="px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            Hủy
+          </button>
+          <button
+            onclick="updateBook()"
+            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Lưu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        getDocs,
+        deleteDoc,
+        doc,
+        updateDoc,
+        onSnapshot,
+        query,
+      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+        authDomain: "qltv-7c9be.firebaseapp.com",
+        projectId: "qltv-7c9be",
+        storageBucket: "qltv-7c9be.firebasestorage.app",
+        messagingSenderId: "411515029850",
+        appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      let selectedBookId = null;
+      let unsubscribe = null;
+      let categories = [];
+
+      // Load categories
+      async function loadCategories() {
+        try {
+          const querySnapshot = await getDocs(collection(db, "categories"));
+          categories = [];
+          querySnapshot.forEach((doc) => {
+            categories.push({
+              id: doc.id,
+              ...doc.data(),
+            });
+          });
+          updateCategoryDropdowns();
+        } catch (error) {
+          console.error("Error loading categories:", error);
+          showToast("Lỗi khi tải danh mục!", "error");
+        }
+      }
+
+      function updateCategoryDropdowns() {
+        const addSelect = document.getElementById("genre");
+        const editSelect = document.getElementById("editGenre");
+
+        // Clear existing options except the first one
+        addSelect.innerHTML = '<option value="">Chọn thể loại</option>';
+        editSelect.innerHTML = '<option value="">Chọn thể loại</option>';
+
+        // Add new options
+        categories.forEach((category) => {
+          addSelect.innerHTML += `<option value="${category.id}">${category.name}</option>`;
+          editSelect.innerHTML += `<option value="${category.id}">${category.name}</option>`;
+        });
+      }
+
+      // Thêm sách
+      window.addBook = async () => {
+        const bookData = {
+          title: document.getElementById("title").value.trim(),
+          author: document.getElementById("author").value.trim(),
+          genreId: document.getElementById("genre").value,
+          price: parseFloat(document.getElementById("price").value),
+          imageUrl: document.getElementById("imageUrl").value.trim(),
+          description: document.getElementById("description").value.trim(),
+          createdAt: new Date(),
+        };
+
+        if (!validateBook(bookData)) return;
+
+        try {
+          showStatusIndicator(true);
+          await addDoc(collection(db, "books"), bookData);
+          clearInputs();
+          showToast("Thêm sách thành công!", "success");
+        } catch (error) {
+          showToast("Lỗi khi thêm sách!", "error");
+          console.error(error);
+        } finally {
+          showStatusIndicator(false);
+        }
+      };
+
+      // Tải danh sách sách
+      window.loadBooks = async () => {
+        try {
+          showLoading(true);
+          if (unsubscribe) {
+            unsubscribe();
+          }
+
+          const q = query(collection(db, "books"));
+          unsubscribe = onSnapshot(
+            q,
+            (querySnapshot) => {
+              renderBooks(querySnapshot);
+              showLoading(false);
+            },
+            (error) => {
+              console.error("Error listening to books collection:", error);
+              showToast("Lỗi theo dõi dữ liệu!", "error");
+              showLoading(false);
+            }
+          );
+        } catch (error) {
+          showToast("Lỗi tải dữ liệu!", "error");
+          console.error(error);
+          showLoading(false);
+        }
+      };
+
+      const renderBooks = (querySnapshot) => {
+        const bookList = document.getElementById("bookList");
+        bookList.innerHTML = "";
+
+        if (querySnapshot.empty) {
+          bookList.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-gray-500">
+                            Không có dữ liệu sách
+                        </td>
+                    </tr>
+                `;
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
+          const book = doc.data();
+          const defaultImageUrl =
+            "https://via.placeholder.com/50x70?text=No+Image";
+          const imageUrl =
+            book.imageUrl && book.imageUrl.trim() !== ""
+              ? book.imageUrl
+              : defaultImageUrl;
+          const category = categories.find((c) => c.id === book.genreId);
+
+          bookList.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3">
+                            <img src="${imageUrl}" alt="${
+            book.title
+          }" class="w-12 h-16 object-cover" 
+                                onerror="this.src='${defaultImageUrl}'">
+                        </td>
+                        <td class="p-3">${book.title}</td>
+                        <td class="p-3">${book.author}</td>
+                        <td class="p-3">${
+                          category ? category.name : "Không xác định"
+                        }</td>
+                        <td class="p-3">${formatPrice(book.price)}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="openEditModal('${
+                              doc.id
+                            }', ${JSON.stringify(book).replace(/'/g, "\\'")})" 
+                                class="text-blue-500 hover:text-blue-600 mr-4">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteBook('${doc.id}')" 
+                                class="text-red-500 hover:text-red-600">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+        });
+      };
+
+      // Xóa sách
+      window.deleteBook = async function (id) {
+        if (!confirm("Bạn có chắc chắn muốn xóa sách này?")) return;
+
+        try {
+          showStatusIndicator(true);
+          await deleteDoc(doc(db, "books", id));
+          showToast("Xóa sách thành công!", "success");
+        } catch (error) {
+          showToast("Lỗi khi xóa sách!", "error");
+          console.error("Lỗi khi xóa sách:", error);
+        } finally {
+          showStatusIndicator(false);
+        }
+      };
+
+      // Mở modal chỉnh sửa
+      window.openEditModal = (id, book) => {
+        selectedBookId = id;
+        document.getElementById("editTitle").value = book.title || "";
+        document.getElementById("editAuthor").value = book.author || "";
+        document.getElementById("editGenre").value = book.genreId || "";
+        document.getElementById("editPrice").value = book.price || "";
+        document.getElementById("editImageUrl").value = book.imageUrl || "";
+        document.getElementById("editDescription").value =
+          book.description || "";
+        document.getElementById("editModal").style.display = "flex";
+      };
+
+      // Cập nhật sách
+      window.updateBook = async () => {
+        const updatedData = {
+          title: document.getElementById("editTitle").value.trim(),
+          author: document.getElementById("editAuthor").value.trim(),
+          genreId: document.getElementById("editGenre").value,
+          price: parseFloat(document.getElementById("editPrice").value),
+          imageUrl: document.getElementById("editImageUrl").value.trim(),
+          description: document.getElementById("editDescription").value.trim(),
+          updatedAt: new Date(),
+        };
+
+        if (!validateBook(updatedData)) return;
+
+        try {
+          showStatusIndicator(true);
+          await updateDoc(doc(db, "books", selectedBookId), updatedData);
+          closeEditModal();
+          showToast("Cập nhật thành công!", "success");
+        } catch (error) {
+          showToast("Lỗi cập nhật!", "error");
+          console.error(error);
+        } finally {
+          showStatusIndicator(false);
+        }
+      };
+
+      // Đóng modal
+      window.closeEditModal = function () {
+        document.getElementById("editModal").style.display = "none";
+        selectedBookId = null;
+      };
+
+      // Helper functions
+      function clearInputs() {
+        document.getElementById("title").value = "";
+        document.getElementById("author").value = "";
+        document.getElementById("genre").value = "";
+        document.getElementById("price").value = "";
+        document.getElementById("imageUrl").value = "";
+        document.getElementById("description").value = "";
+      }
+
+      window.showLoading = function (show) {
+        document.getElementById("loading").style.display = show
+          ? "table-row"
+          : "none";
+      };
+
+      function showStatusIndicator(show) {
+        const status = document.getElementById("status");
+        status.classList.toggle("hidden", !show);
+      }
+
+      // Hàm validation
+      const validateBook = (book) => {
+        if (!book.title || !book.author || !book.genreId || !book.price) {
+          showToast("Vui lòng điền đầy đủ thông tin bắt buộc!", "warning");
+          return false;
+        }
+        if (isNaN(book.price) || book.price <= 0) {
+          showToast("Giá tiền không hợp lệ!", "warning");
+          return false;
+        }
+        return true;
+      };
+
+      // Hiển thị thông báo
+      const showToast = (message, type = "info") => {
+        const toast = document.createElement("div");
+        toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${
+          type === "success"
+            ? "bg-green-500"
+            : type === "error"
+            ? "bg-red-500"
+            : type === "warning"
+            ? "bg-yellow-500"
+            : "bg-blue-500"
+        } shadow-lg z-50`;
+        toast.innerHTML = `<div class="flex items-center">
+                <i class="fas fa-${
+                  type === "success"
+                    ? "check-circle"
+                    : type === "error"
+                    ? "exclamation-circle"
+                    : type === "warning"
+                    ? "exclamation-triangle"
+                    : "info-circle"
+                } mr-2"></i>
+                ${message}
+            </div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add(
+            "opacity-0",
+            "transition-opacity",
+            "duration-300"
+          );
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      };
+
+      // Định dạng giá tiền
+      const formatPrice = (price) => {
+        return new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(price);
+      };
+
+      // Khởi động
+      document.addEventListener("DOMContentLoaded", () => {
+        loadCategories();
+        loadBooks();
+
+        // Đóng modal khi click bên ngoài
+        document.getElementById("editModal").addEventListener("click", (e) => {
+          if (e.target === document.getElementById("editModal")) {
+            closeEditModal();
+          }
+        });
+      });
+
+      // Cleanup khi trang bị đóng
+      window.addEventListener("beforeunload", () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      });
+    </script>
+  </body>
+</html>

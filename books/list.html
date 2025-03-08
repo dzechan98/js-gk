@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh sách sách</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Quản lý sách</h1>
+        <a
+          href="add.html"
+          class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+        >
+          <i class="fas fa-plus mr-2"></i>Thêm sách mới
+        </a>
+      </div>
+
+      <!-- Danh sách sách -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-4 border-b flex justify-between items-center">
+          <h2 class="text-xl font-semibold">Danh sách sách</h2>
+          <div class="flex items-center">
+            <span id="status" class="text-gray-500 text-sm mr-4 hidden">
+              <i class="fas fa-sync-alt fa-spin mr-1"></i> Đồng bộ dữ liệu...
+            </span>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="p-3 text-left">Ảnh</th>
+                <th class="p-3 text-left">Tên sách</th>
+                <th class="p-3 text-left">Tác giả</th>
+                <th class="p-3 text-left">Thể loại</th>
+                <th class="p-3 text-left">Giá</th>
+                <th class="p-3 text-left">Mô tả</th>
+                <th class="p-3 text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="bookList" class="divide-y">
+              <tr id="loading">
+                <td colspan="7" class="p-4 text-center text-gray-500">
+                  <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        deleteDoc,
+        doc,
+        onSnapshot,
+        query,
+      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+        authDomain: "qltv-7c9be.firebaseapp.com",
+        projectId: "qltv-7c9be",
+        storageBucket: "qltv-7c9be.firebasestorage.app",
+        messagingSenderId: "411515029850",
+        appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      let categories = [];
+      let unsubscribe = null;
+
+      async function loadCategories() {
+        try {
+          const querySnapshot = await getDocs(collection(db, "categories"));
+          categories = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+        } catch (error) {
+          console.error("Error loading categories:", error);
+          showToast("Lỗi khi tải danh mục!", "error");
+        }
+      }
+
+      async function setupRealtimeUpdates() {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+
+        const q = query(collection(db, "books"));
+        unsubscribe = onSnapshot(
+          q,
+          (querySnapshot) => {
+            renderBooks(querySnapshot);
+          },
+          (error) => {
+            console.error("Error listening to books collection:", error);
+            showToast("Lỗi theo dõi dữ liệu!", "error");
+          }
+        );
+      }
+
+      function renderBooks(querySnapshot) {
+        const bookList = document.getElementById("bookList");
+        bookList.innerHTML = "";
+
+        if (querySnapshot.empty) {
+          bookList.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="p-4 text-center text-gray-500">
+                            Không có dữ liệu sách
+                        </td>
+                    </tr>
+                `;
+          return;
+        }
+
+        querySnapshot.forEach((doc) => {
+          const book = doc.data();
+          const defaultImageUrl =
+            "https://via.placeholder.com/50x70?text=No+Image";
+          const imageUrl =
+            book.imageUrl && book.imageUrl.trim() !== ""
+              ? book.imageUrl
+              : defaultImageUrl;
+          const category = categories.find((c) => c.id === book.genreId);
+
+          bookList.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3">
+                            <img src="${imageUrl}" alt="${book.title}" 
+                                class="w-12 h-16 object-cover" 
+                                onerror="this.src='${defaultImageUrl}'">
+                        </td>
+                        <td class="p-3">${book.title}</td>
+                        <td class="p-3">${book.author}</td>
+                        <td class="p-3">${
+                          category ? category.name : "Không xác định"
+                        }</td>
+                        <td class="p-3">${formatPrice(book.price)}</td>
+                        <td class="p-3">
+                            <div class="max-w-xs overflow-hidden text-ellipsis">
+                                ${book.description || "Không có mô tả"}
+                            </div>
+                        </td>
+                        <td class="p-3 text-center">
+                            <a href="edit.html?id=${doc.id}" 
+                                class="text-blue-500 hover:text-blue-600 mr-4">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button onclick="deleteBook('${doc.id}')" 
+                                class="text-red-500 hover:text-red-600">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+        });
+      }
+
+      window.deleteBook = async (id) => {
+        if (!confirm("Bạn có chắc chắn muốn xóa sách này?")) return;
+
+        try {
+          await deleteDoc(doc(db, "books", id));
+          showToast("Xóa sách thành công!", "success");
+        } catch (error) {
+          showToast("Lỗi khi xóa sách!", "error");
+          console.error("Lỗi khi xóa sách:", error);
+        }
+      };
+
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${
+          type === "success"
+            ? "bg-green-500"
+            : type === "error"
+            ? "bg-red-500"
+            : type === "warning"
+            ? "bg-yellow-500"
+            : "bg-blue-500"
+        } shadow-lg z-50`;
+        toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${
+                      type === "success"
+                        ? "check-circle"
+                        : type === "error"
+                        ? "exclamation-circle"
+                        : type === "warning"
+                        ? "exclamation-triangle"
+                        : "info-circle"
+                    } mr-2"></i>
+                    ${message}
+                </div>
+            `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add(
+            "opacity-0",
+            "transition-opacity",
+            "duration-300"
+          );
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      function formatPrice(price) {
+        return new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(price);
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        await loadCategories();
+        setupRealtimeUpdates();
+      });
+
+      window.addEventListener("beforeunload", () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      });
+    </script>
+  </body>
+</html>
