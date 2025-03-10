@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chỉnh sửa danh mục</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-3xl mx-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Chỉnh sửa danh mục</h1>
+        <a href="list-category.html" class="text-blue-500 hover:text-blue-600">
+          <i class="fas fa-arrow-left mr-2"></i>Quay lại
+        </a>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Tên danh mục</label
+            >
+            <input
+              type="text"
+              id="name"
+              class="w-full p-2 border rounded-lg"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Mô tả</label
+            >
+            <textarea
+              id="description"
+              rows="3"
+              class="w-full p-2 border rounded-lg"
+            ></textarea>
+          </div>
+
+          <button
+            onclick="updateCategory()"
+            class="w-full bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+          >
+            <i class="fas fa-save mr-2"></i>Lưu thay đổi
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+        authDomain: "qltv-7c9be.firebaseapp.com",
+        projectId: "qltv-7c9be",
+        storageBucket: "qltv-7c9be.firebasestorage.app",
+        messagingSenderId: "411515029850",
+        appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      let categoryId = null;
+
+      async function loadCategory() {
+        const urlParams = new URLSearchParams(window.location.search);
+        categoryId = urlParams.get("id");
+
+        if (!categoryId) {
+          showToast("Không tìm thấy ID danh mục!", "error");
+          setTimeout(() => {
+            window.location.href = "list.html";
+          }, 1500);
+          return;
+        }
+
+        try {
+          const docRef = doc(db, "categories", categoryId);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const category = docSnap.data();
+            document.getElementById("name").value = category.name || "";
+            document.getElementById("description").value = 
+              category.description || "";
+          } else {
+            showToast("Không tìm thấy danh mục!", "error");
+            setTimeout(() => {
+              window.location.href = "list-category.html";
+            }, 1500);
+          }
+        } catch (error) {
+          console.error("Error loading category:", error);
+          showToast("Lỗi khi tải thông tin danh mục!", "error");
+        }
+      }
+
+      window.updateCategory = async () => {
+        const updatedData = {
+          name: document.getElementById("name").value.trim(),
+          description: document.getElementById("description").value.trim(),
+          updatedAt: new Date(),
+        };
+
+        if (!validateCategory(updatedData)) return;
+
+        try {
+          await updateDoc(doc(db, "categories", categoryId), updatedData);
+          showToast("Cập nhật thành công!", "success");
+          setTimeout(() => {
+            window.location.href = "list.html";
+          }, 1500);
+        } catch (error) {
+          showToast("Lỗi khi cập nhật!", "error");
+          console.error(error);
+        }
+      };
+
+      function validateCategory(category) {
+        if (!category.name) {
+          showToast("Vui lòng nhập tên danh mục!", "warning");
+          return false;
+        }
+        if (category.name.length < 3) {
+          showToast("Tên danh mục phải có ít nhất 3 ký tự!", "warning");
+          return false;
+        }
+        return true;
+      }
+
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${
+          type === "success"
+            ? "bg-green-500"
+            : type === "error"
+            ? "bg-red-500"
+            : type === "warning"
+            ? "bg-yellow-500"
+            : "bg-blue-500"
+        } shadow-lg z-50`;
+        toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${
+                      type === "success"
+                        ? "check-circle"
+                        : type === "error"
+                        ? "exclamation-circle"
+                        : type === "warning"
+                        ? "exclamation-triangle"
+                        : "info-circle"
+                    } mr-2"></i>
+                    ${message}
+                </div>
+            `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add(
+            "opacity-0",
+            "transition-opacity",
+            "duration-300"
+          );
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      document.addEventListener("DOMContentLoaded", loadCategory);
+    </script>
+  </body>
+</html>
