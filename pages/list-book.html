@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Danh sách sách</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+
+<body class="bg-gray-100 min-h-screen p-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Danh sách sách</h1>
+    </div>
+
+    <!-- Thanh tìm kiếm và lọc -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên sách hoặc tác giả..."
+            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <button onclick="filterBooks()"
+            class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+            <i class="fas fa-search mr-2"></i>Tìm kiếm
+          </button>
+        </div>
+        <div>
+          <select id="filterCategory"
+            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Tất cả thể loại</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách sách -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden p-4">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Danh sách sách</h2>
+        <div class="flex items-center">
+          <span id="status" class="text-gray-500 text-sm mr-4 hidden">
+            <i class="fas fa-sync-alt fa-spin mr-1"></i> Đồng bộ dữ liệu...
+          </span>
+        </div>
+      </div>
+
+      <!-- Grid Layout for Books -->
+      <div id="bookList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div id="loading" class="col-span-full text-center text-gray-500">
+          <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      onSnapshot,
+      query,
+      doc,
+      getDoc,
+      setDoc,
+    } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+      authDomain: "qltv-7c9be.firebaseapp.com",
+      projectId: "qltv-7c9be",
+      storageBucket: "qltv-7c9be.firebasestorage.app",
+      messagingSenderId: "411515029850",
+      appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let categories = [];
+    let unsubscribe = null;
+    let allBooks = [];
+
+    async function loadCategories() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "categories"));
+        categories = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        populateCategoryFilter();
+      } catch (error) {
+        console.error("Error loading categories:", error);
+        showToast("Lỗi khi tải danh mục!", "error");
+      }
+    }
+
+    function populateCategoryFilter() {
+      const filter = document.getElementById('filterCategory');
+      categories.forEach(category => {
+        filter.innerHTML += `<option value="${category.id}">${category.name}</option>`;
+      });
+    }
+
+    async function setupRealtimeUpdates() {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+
+      const q = query(collection(db, "books"));
+      unsubscribe = onSnapshot(
+        q,
+        (querySnapshot) => {
+          allBooks = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          filterBooks();
+        },
+        (error) => {
+          console.error("Error listening to books collection:", error);
+          showToast("Lỗi theo dõi dữ liệu!", "error");
+        }
+      );
+    }
+
+    function filterBooks() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const selectedCategory = document.getElementById('filterCategory').value;
+
+      const filteredBooks = allBooks.filter(book => {
+        const matchesSearch = book.title.toLowerCase().includes(searchTerm) ||
+          book.author.toLowerCase().includes(searchTerm);
+        const matchesCategory = !selectedCategory || book.genreId === selectedCategory;
+        return matchesSearch && matchesCategory;
+      });
+
+      renderBooks(filteredBooks);
+    }
+
+    function renderBooks(books) {
+      const bookList = document.getElementById("bookList");
+      bookList.innerHTML = "";
+
+      if (books.length === 0) {
+        bookList.innerHTML = `
+            <div class="col-span-full text-center text-gray-500">
+              Không tìm thấy sách phù hợp
+            </div>
+          `;
+        return;
+      }
+
+      books.forEach((book) => {
+        const defaultImageUrl = "https://via.placeholder.com/150x200?text=No+Image";
+        const imageUrl = book.imageUrl?.trim() || defaultImageUrl;
+        const category = categories.find((c) => c.id === book.genreId);
+
+        bookList.innerHTML += `
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              <img src="${imageUrl}" alt="${book.title}" 
+                   class="w-full h-48 object-cover"
+                   onerror="this.src='${defaultImageUrl}'">
+              <div class="p-4">
+                <h3 class="text-lg font-semibold">${book.title}</h3>
+                <p class="text-sm text-gray-600">${book.author}</p>
+                <p class="text-sm text-gray-600">${category ? category.name : "Không xác định"
+          }</p>
+                <p class="text-lg font-bold text-blue-600">${formatPrice(book.price)}</p>
+                <p class="text-sm text-gray-700 truncate">${book.description || "Không có mô tả"
+          }</p>
+                <button onclick="addToCart('${book.id}')" 
+                        class="w-full mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                  <i class="fas fa-cart-plus mr-2"></i>Thêm vào giỏ hàng
+                </button>
+              </div>
+            </div>
+          `;
+      });
+    }
+
+    window.addToCart = async (bookId) => {
+      const userId = "user1"; // Replace with actual user ID
+      const cartRef = doc(db, "carts", userId);
+
+      try {
+        const cartDoc = await getDoc(cartRef);
+        if (cartDoc.exists()) {
+          const cartData = cartDoc.data();
+          const itemIndex = cartData.items.findIndex((item) => item.bookId === bookId);
+
+          if (itemIndex !== -1) {
+            // If the book is already in the cart, increment the quantity
+            cartData.items[itemIndex].quantity += 1;
+          } else {
+            // If the book is not in the cart, add it with quantity 1
+            cartData.items.push({ bookId, quantity: 1 });
+          }
+
+          await setDoc(cartRef, { items: cartData.items });
+          showToast("Đã cập nhật giỏ hàng!", "success");
+        } else {
+          // If the cart doesn't exist, create it with the new book
+          await setDoc(cartRef, { items: [{ bookId, quantity: 1 }] });
+          showToast("Đã thêm sách vào giỏ hàng!", "success");
+        }
+      } catch (error) {
+        showToast("Lỗi khi cập nhật giỏ hàng!", "error");
+        console.error(error);
+      }
+    };
+
+    function showToast(message, type = "info") {
+      const toast = document.createElement("div");
+      toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${type === "success"
+        ? "bg-green-500"
+        : type === "error"
+          ? "bg-red-500"
+          : type === "warning"
+            ? "bg-yellow-500"
+            : "bg-blue-500"
+        } shadow-lg z-50`;
+      toast.innerHTML = `
+          <div class="flex items-center">
+            <i class="fas fa-${type === "success"
+          ? "check-circle"
+          : type === "error"
+            ? "exclamation-circle"
+            : type === "warning"
+              ? "exclamation-triangle"
+              : "info-circle"
+        } mr-2"></i>
+            ${message}
+          </div>
+        `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add(
+          "opacity-0",
+          "transition-opacity",
+          "duration-300"
+        );
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function formatPrice(price) {
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(price);
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadCategories();
+      setupRealtimeUpdates();
+
+      document.getElementById('searchInput').addEventListener('input', filterBooks);
+      document.getElementById('filterCategory').addEventListener('change', filterBooks);
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    });
+  </script>
+</body>
+
+</html>
