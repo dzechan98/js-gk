@@ -13,7 +13,7 @@
   <div class="max-w-6xl mx-auto">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">Giỏ hàng</h1>
-      <a href="list.html" class="text-blue-500 hover:text-blue-600">
+      <a href="../pages/list-book.html" class="text-blue-500 hover:text-blue-600">
         <i class="fas fa-arrow-left mr-2"></i>Quay lại
       </a>
     </div>
@@ -23,6 +23,14 @@
       <div id="loading" class="text-center text-gray-500">
         <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
       </div>
+    </div>
+
+    <!-- Place Order Button -->
+    <div class="mt-6 text-right">
+      <button onclick="placeOrder()"
+        class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+        <i class="fas fa-check mr-2"></i>Đặt hàng
+      </button>
     </div>
   </div>
 
@@ -35,6 +43,7 @@
       setDoc,
       collection,
       getDocs,
+      addDoc,
     } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -72,9 +81,11 @@
           return;
         }
 
+        let total = 0;
         cartItems.forEach((item) => {
           const book = books.find((b) => b.id === item.bookId);
           if (book) {
+            total += book.price * item.quantity;
             cartItemsContainer.innerHTML += `
               <div class="flex items-center justify-between border-b pb-4 mb-4">
                 <div class="flex items-center">
@@ -105,6 +116,13 @@
             `;
           }
         });
+
+        // Display total price
+        cartItemsContainer.innerHTML += `
+          <div class="flex justify-end mt-4">
+            <p class="text-xl font-bold">Tổng tiền: ${formatPrice(total)}</p>
+          </div>
+        `;
       } else {
         document.getElementById("cartItems").innerHTML = `
           <div class="text-center text-gray-500">
@@ -155,12 +173,97 @@
       }
     };
 
+    // Place order
+    window.placeOrder = async () => {
+      const userId = "user1"; // Replace with actual user ID
+      const cartRef = doc(db, "carts", userId);
+      const cartDoc = await getDoc(cartRef);
+
+      if (cartDoc.exists()) {
+        const cartData = cartDoc.data();
+        if (cartData.items.length === 0) {
+          showToast("Giỏ hàng trống!", "warning");
+          return;
+        }
+
+        // Calculate total price
+        const bookList = await getDocs(collection(db, "books"));
+        const books = bookList.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        let total = 0;
+        const orderItems = cartData.items.map((item) => {
+          const book = books.find((b) => b.id === item.bookId);
+          total += book.price * item.quantity;
+          return {
+            bookId: item.bookId,
+            title: book.title,
+            imageUrl: book.imageUrl,
+            price: book.price,
+            quantity: item.quantity,
+          };
+        });
+
+        // Create order
+        const orderData = {
+          userId,
+          items: orderItems,
+          total,
+          status: "Pending",
+          createdAt: new Date(),
+        };
+
+        try {
+          await addDoc(collection(db, "orders"), orderData);
+          await setDoc(cartRef, { items: [] }); // Clear the cart
+          showToast("Đặt hàng thành công!", "success");
+          loadCart();
+        } catch (error) {
+          showToast("Lỗi khi đặt hàng!", "error");
+          console.error(error);
+        }
+      }
+    };
+
     // Format price
     function formatPrice(price) {
       return new Intl.NumberFormat("vi-VN", {
         style: "currency",
         currency: "VND",
       }).format(price);
+    }
+
+    // Show toast notifications
+    function showToast(message, type = "info") {
+      const toast = document.createElement("div");
+      toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${type === "success"
+          ? "bg-green-500"
+          : type === "error"
+            ? "bg-red-500"
+            : type === "warning"
+              ? "bg-yellow-500"
+              : "bg-blue-500"
+        } shadow-lg z-50`;
+      toast.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas fa-${type === "success"
+          ? "check-circle"
+          : type === "error"
+            ? "exclamation-circle"
+            : type === "warning"
+              ? "exclamation-triangle"
+              : "info-circle"
+        } mr-2"></i>
+          ${message}
+        </div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add(
+          "opacity-0",
+          "transition-opacity",
+          "duration-300"
+        );
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
     }
 
     // Initialize

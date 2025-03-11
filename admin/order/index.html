@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản lý đơn hàng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+
+<body class="bg-gray-100 min-h-screen p-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Quản lý đơn hàng</h1>
+      <a href="dashboard.html" class="text-blue-500 hover:text-blue-600">
+        <i class="fas fa-arrow-left mr-2"></i>Quay lại
+      </a>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <input type="text" id="searchInput" placeholder="Tìm theo mã đơn hoặc người đặt..."
+            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <select id="statusFilter"
+            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Pending">Đang xử lý</option>
+            <option value="Completed">Đã hoàn thành</option>
+            <option value="Cancelled">Đã hủy</option>
+          </select>
+        </div>
+        <div>
+          <button onclick="applyFilters()"
+            class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+            <i class="fas fa-search mr-2"></i>Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order List -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="p-4 border-b">
+        <h2 class="text-xl font-semibold">Danh sách đơn hàng</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="p-3 text-left">Mã đơn hàng</th>
+              <th class="p-3 text-left">Người đặt</th>
+              <th class="p-3 text-left">Sản phẩm</th>
+              <th class="p-3 text-left">Tổng tiền</th>
+              <th class="p-3 text-left">Trạng thái</th>
+              <th class="p-3 text-left">Ngày đặt</th>
+              <th class="p-3 text-center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="orderList" class="divide-y">
+            <tr id="loading">
+              <td colspan="7" class="p-4 text-center text-gray-500">
+                <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      updateDoc,
+      onSnapshot,
+      query,
+      where,
+      getDocs,
+      getDoc,
+    } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+      authDomain: "qltv-7c9be.firebaseapp.com",
+      projectId: "qltv-7c9be",
+      storageBucket: "qltv-7c9be.firebasestorage.app",
+      messagingSenderId: "411515029850",
+      appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let allOrders = [];
+
+    // Real-time orders listener
+    const unsubscribe = onSnapshot(collection(db, "orders"), async (snapshot) => {
+      const orders = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate()
+      }));
+
+
+      allOrders = await Promise.all(orders.map(async (order) => {
+        const userRef = doc(db, 'users', order.userId);
+        const userSnapshot = await getDoc(userRef);
+        const user = userSnapshot.data();
+        return { user, ...order };
+      }));
+
+      document.getElementById("loading").style.display = "none";
+      applyFilters();
+    });
+
+    // Apply filters function
+    window.applyFilters = () => {
+      const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+      const statusFilter = document.getElementById("statusFilter").value;
+
+      const filteredOrders = allOrders.filter(order => {
+        const matchesSearch = order.id.toLowerCase().includes(searchTerm) ||
+          order.userId.toLowerCase().includes(searchTerm);
+        const matchesStatus = !statusFilter || order.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
+
+      renderOrders(filteredOrders);
+    };
+
+    // Render orders
+    async function renderOrders(orders) {
+      const orderList = document.getElementById("orderList");
+      orderList.innerHTML = "";
+
+      if (orders.length === 0) {
+        orderList.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-4 text-center text-gray-500">
+              Không tìm thấy đơn hàng phù hợp
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      orders.forEach((order) => {
+        orderList.innerHTML += `
+          <tr class="hover:bg-gray-50">
+            <td class="p-3 font-medium">${order.id}</td>
+            <td class="p-3">${order.user.firstName + " " + order.user.lastName}</td>
+            <td class="p-3">
+              <div class="flex flex-col">
+                ${order.items.map(item => `
+                  <div class="flex items-center mb-2">
+                    <img src="${item.imageUrl}" alt="${item.title}" 
+                         class="w-8 h-12 object-cover mr-2">
+                    <div>
+                      <p class="text-sm">${item.title}</p>
+                      <p class="text-xs text-gray-500">Số lượng: ${item.quantity}</p>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+            </td>
+            <td class="p-3">${formatPrice(order.total)}</td>
+            <td class="p-3">
+              <select id="status-${order.id}" 
+                      class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onchange="updateOrderStatus('${order.id}', this.value)">
+                <option value="Pending" ${order.status === "Pending" ? "selected" : ""}>Đang xử lý</option>
+                <option value="Completed" ${order.status === "Completed" ? "selected" : ""}>Đã hoàn thành</option>
+                <option value="Cancelled" ${order.status === "Cancelled" ? "selected" : ""}>Đã hủy</option>
+              </select>
+            </td>
+            <td class="p-3">${order.createdAt?.toLocaleString() || 'N/A'}</td>
+            <td class="p-3 text-center">
+              <button onclick="viewOrderDetails('${order.id}')" 
+                      class="text-blue-500 hover:text-blue-600">
+                <i class="fas fa-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    // Update order status
+    window.updateOrderStatus = async (orderId, newStatus) => {
+      const orderRef = doc(db, "orders", orderId);
+      try {
+        await updateDoc(orderRef, { status: newStatus });
+        showToast("Đã cập nhật trạng thái đơn hàng!", "success");
+      } catch (error) {
+        showToast("Lỗi khi cập nhật trạng thái đơn hàng!", "error");
+        console.error(error);
+      }
+    };
+
+    // Format price
+    function formatPrice(price) {
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(price);
+    }
+
+    // Show toast notifications
+    function showToast(message, type = "info") {
+      const toast = document.createElement("div");
+      toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${type === "success"
+        ? "bg-green-500"
+        : type === "error"
+          ? "bg-red-500"
+          : type === "warning"
+            ? "bg-yellow-500"
+            : "bg-blue-500"
+        } shadow-lg z-50`;
+      toast.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas fa-${type === "success"
+          ? "check-circle"
+          : type === "error"
+            ? "exclamation-circle"
+            : type === "warning"
+              ? "exclamation-triangle"
+              : "info-circle"
+        } mr-2"></i>
+          ${message}
+        </div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add("opacity-0", "transition-opacity", "duration-300");
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Cleanup listener
+    window.addEventListener("beforeunload", () => unsubscribe());
+  </script>
+</body>
+
+</html>
