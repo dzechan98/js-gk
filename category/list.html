@@ -10,50 +10,134 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
   </head>
-  <body class="bg-gray-100 min-h-screen p-8">
-    <div class="max-w-6xl mx-auto">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Quản lý danh mục</h1>
-        <a
-          href="./create.html"
-          class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-        >
-          <i class="fas fa-plus mr-2"></i>Thêm danh mục mới
-        </a>
-      </div>
-
-      <!-- Danh sách danh mục -->
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-4 border-b flex justify-between items-center">
-          <h2 class="text-xl font-semibold">Danh sách danh mục</h2>
+  <body class="bg-gray-100 min-h-screen">
+    <nav class="bg-gray-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
           <div class="flex items-center">
-            <span id="status" class="text-gray-500 text-sm mr-4 hidden">
-              <i class="fas fa-sync-alt fa-spin mr-1"></i> Đồng bộ dữ liệu...
-            </span>
+            <div class="flex-shrink-0">
+              <span class="text-white text-xl font-bold">BookStore</span>
+            </div>
+            <div class="hidden md:block">
+              <div class="ml-10 flex items-baseline space-x-4">
+                <a
+                  href="/books/list.html"
+                  class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                  id="books-link"
+                >
+                  Sách
+                </a>
+                <a
+                  href="/category/list.html"
+                  class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                  id="category-link"
+                >
+                  Danh mục
+                </a>
+                <a
+                  href="/user/index.html"
+                  class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                  id="users-link"
+                >
+                  Người dùng
+                </a>
+                <a
+                  href="/admin/order/index.html"
+                  class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 active:text-red-500 py-2 rounded-md text-sm font-medium"
+                  id="orders-link"
+                >
+                  Đơn hàng
+                </a>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="p-3 text-left">Tên danh mục</th>
-                <th class="p-3 text-left">Mô tả</th>
-                <th class="p-3 text-center">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="categoryList" class="divide-y">
-              <tr id="loading">
-                <td colspan="3" class="p-4 text-center text-gray-500">
-                  <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      </div>
+    </nav>
+    <div class="p-8">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold">Quản lý danh mục</h1>
+          <a
+            href="./create.html"
+            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          >
+            <i class="fas fa-plus mr-2"></i>Thêm danh mục mới
+          </a>
+        </div>
+
+        <!-- Danh sách danh mục -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="p-4 border-b flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Danh sách danh mục</h2>
+            <div class="flex items-center">
+              <span id="status" class="text-gray-500 text-sm mr-4 hidden">
+                <i class="fas fa-sync-alt fa-spin mr-1"></i> Đồng bộ dữ liệu...
+              </span>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="p-3 text-left">Tên danh mục</th>
+                  <th class="p-3 text-left">Mô tả</th>
+                  <th class="p-3 text-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="categoryList" class="divide-y">
+                <tr id="loading">
+                  <td colspan="3" class="p-4 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
 
     <script type="module">
+      document.addEventListener("DOMContentLoaded", function () {
+        const currentPath = window.location.pathname;
+
+        document.querySelectorAll("nav a").forEach((link) => {
+          link.classList.remove("bg-gray-900", "text-white");
+          link.classList.add("text-gray-300");
+        });
+
+        if (currentPath.includes("/books/")) {
+          document
+            .getElementById("books-link")
+            .classList.add("bg-gray-900", "text-white");
+          document
+            .getElementById("books-link")
+            .classList.remove("text-gray-300");
+        } else if (currentPath.includes("/category/")) {
+          document
+            .getElementById("category-link")
+            .classList.add("bg-gray-900", "text-white");
+          document
+            .getElementById("category-link")
+            .classList.remove("text-gray-300");
+        } else if (currentPath.includes("/user/")) {
+          document
+            .getElementById("users-link")
+            .classList.add("bg-gray-900", "text-white");
+          document
+            .getElementById("users-link")
+            .classList.remove("text-gray-300");
+        } else if (currentPath.includes("/admin/order/")) {
+          document
+            .getElementById("orders-link")
+            .classList.add("bg-gray-900", "text-white");
+          document
+            .getElementById("orders-link")
+            .classList.remove("text-gray-300");
+        }
+      });
+
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
       import {
         getFirestore,
@@ -112,7 +196,7 @@
 
         querySnapshot.forEach((doc) => {
           const category = doc.data();
-          
+
           categoryList.innerHTML += `
             <tr class="hover:bg-gray-50">
                 <td class="p-3 font-medium">${category.name}</td>
