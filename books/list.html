@@ -42,6 +42,9 @@
             </div>
           </div>
         </div>
+        <div>
+          <button id="btnLogOut" class="text-white bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg">Log Out</button>
+        </div>
       </div>
     </div>
   </nav>
@@ -99,6 +102,35 @@
   </div>
 
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    // import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      deleteDoc,
+      doc,
+      onSnapshot,
+      query,
+    } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+      authDomain: "qltv-7c9be.firebaseapp.com",
+      projectId: "qltv-7c9be",
+      storageBucket: "qltv-7c9be.firebasestorage.app",
+      messagingSenderId: "411515029850",
+      appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let categories = [];
+    let unsubscribe = null;
+
     document.addEventListener("DOMContentLoaded", function () {
       const currentPath = window.location.pathname;
 
@@ -136,32 +168,15 @@
           .getElementById("orders-link")
           .classList.remove("text-gray-300");
       }
+
+      document.getElementById("btnLogOut").addEventListener("click", async () => {
+        if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+          await signOut(auth);
+          window.location.href = "/authenticate/login.html";
+        }
+      });
+
     });
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      deleteDoc,
-      doc,
-      onSnapshot,
-      query,
-    } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
-      authDomain: "qltv-7c9be.firebaseapp.com",
-      projectId: "qltv-7c9be",
-      storageBucket: "qltv-7c9be.firebasestorage.app",
-      messagingSenderId: "411515029850",
-      appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    let categories = [];
-    let unsubscribe = null;
 
     async function loadCategories() {
       try {

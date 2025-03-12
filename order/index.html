@@ -69,7 +69,7 @@
 
     // Fetch and display orders
     async function loadOrders() {
-      const userId = "user1"; // Replace with actual user ID
+      const userId = "YLsroeDcVZc5xVMkWiYT"; // Replace with actual user ID
       const ordersRef = collection(db, "orders");
       const q = query(ordersRef, where("userId", "==", userId)); // Filter orders by user ID
       const querySnapshot = await getDocs(q);
