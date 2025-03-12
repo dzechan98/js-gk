@@ -1,326 +1,372 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Danh sách sách</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-  </head>
-  <body class="bg-gray-100 min-h-screen">
-    <nav class="bg-gray-800">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <span class="text-white text-xl font-bold">BookStore</span>
-            </div>
-            <div class="hidden md:block">
-              <div class="ml-10 flex items-baseline space-x-4">
-                <a
-                  href="/books/list.html"
-                  class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                  id="books-link"
-                >
-                  Sách
-                </a>
-                <a
-                  href="/category/list.html"
-                  class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                  id="category-link"
-                >
-                  Danh mục
-                </a>
-                <a
-                  href="/user/index.html"
-                  class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                  id="users-link"
-                >
-                  Người dùng
-                </a>
-                <a
-                  href="/admin/order/index.html"
-                  class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 active:text-red-500 py-2 rounded-md text-sm font-medium"
-                  id="orders-link"
-                >
-                  Đơn hàng
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-    <div class="p-8">
-      <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-          <h1 class="text-2xl font-bold">Quản lý sách</h1>
-          <a
-            href="add.html"
-            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-          >
-            <i class="fas fa-plus mr-2"></i>Thêm sách mới
-          </a>
-        </div>
 
-        <!-- Danh sách sách -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-          <div class="p-4 border-b flex justify-between items-center">
-            <h2 class="text-xl font-semibold">Danh sách sách</h2>
-            <div class="flex items-center">
-              <span id="status" class="text-gray-500 text-sm mr-4 hidden">
-                <i class="fas fa-sync-alt fa-spin mr-1"></i> Đồng bộ dữ liệu...
-              </span>
-            </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Danh sách sách</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <nav class="bg-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <span class="text-white text-xl font-bold">BookStore</span>
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="p-3 text-left">Ảnh</th>
-                  <th class="p-3 text-left">Tên sách</th>
-                  <th class="p-3 text-left">Tác giả</th>
-                  <th class="p-3 text-left">Thể loại</th>
-                  <th class="p-3 text-left">Giá</th>
-                  <th class="p-3 text-left">Mô tả</th>
-                  <th class="p-3 text-center">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody id="bookList" class="divide-y">
-                <tr id="loading">
-                  <td colspan="7" class="p-4 text-center text-gray-500">
-                    <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/books/list.html"
+                class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                id="books-link">
+                Sách
+              </a>
+              <a href="/category/list.html"
+                class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                id="category-link">
+                Danh mục
+              </a>
+              <a href="/user/index.html"
+                class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                id="users-link">
+                Người dùng
+              </a>
+              <a href="/admin/order/index.html"
+                class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 active:text-red-500 py-2 rounded-md text-sm font-medium"
+                id="orders-link">
+                Đơn hàng
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </nav>
+  <div class="p-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Quản lý sách</h1>
+        <a href="add.html" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+          <i class="fas fa-plus mr-2"></i>Thêm sách mới
+        </a>
+      </div>
 
-    <script type="module">
-      document.addEventListener("DOMContentLoaded", function () {
-        const currentPath = window.location.pathname;
+      <!-- Danh sách sách -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-4 border-b flex justify-between items-center">
+          <h2 class="text-xl font-semibold">Danh sách sách</h2>
+          <div class="flex items-center">
+            <span id="status" class="text-gray-500 text-sm mr-4 hidden">
+              <i class="fas fa-sync-alt fa-spin mr-1"></i> Đồng bộ dữ liệu...
+            </span>
+          </div>
+        </div>
+        <div class="p-4 border-b flex gap-4 items-center">
+          <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên hoặc tác giả..."
+            class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 flex-grow max-w-md" />
+          <select id="categoryFilter"
+            class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Tất cả thể loại</option>
+          </select>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="p-3 text-left">Ảnh</th>
+                <th class="p-3 text-left">Tên sách</th>
+                <th class="p-3 text-left">Tác giả</th>
+                <th class="p-3 text-left">Thể loại</th>
+                <th class="p-3 text-left">Giá</th>
+                <th class="p-3 text-left">Mô tả</th>
+                <th class="p-3 text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="bookList" class="divide-y">
+              <tr id="loading">
+                <td colspan="7" class="p-4 text-center text-gray-500">
+                  <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        document.querySelectorAll("nav a").forEach((link) => {
-          link.classList.remove("bg-gray-900", "text-white");
-          link.classList.add("text-gray-300");
-        });
+  <script type="module">
+    document.addEventListener("DOMContentLoaded", function () {
+      const currentPath = window.location.pathname;
 
-        if (currentPath.includes("/books/")) {
-          document
-            .getElementById("books-link")
-            .classList.add("bg-gray-900", "text-white");
-          document
-            .getElementById("books-link")
-            .classList.remove("text-gray-300");
-        } else if (currentPath.includes("/category/")) {
-          document
-            .getElementById("category-link")
-            .classList.add("bg-gray-900", "text-white");
-          document
-            .getElementById("category-link")
-            .classList.remove("text-gray-300");
-        } else if (currentPath.includes("/user/")) {
-          document
-            .getElementById("users-link")
-            .classList.add("bg-gray-900", "text-white");
-          document
-            .getElementById("users-link")
-            .classList.remove("text-gray-300");
-        } else if (currentPath.includes("/admin/order/")) {
-          document
-            .getElementById("orders-link")
-            .classList.add("bg-gray-900", "text-white");
-          document
-            .getElementById("orders-link")
-            .classList.remove("text-gray-300");
-        }
+      document.querySelectorAll("nav a").forEach((link) => {
+        link.classList.remove("bg-gray-900", "text-white");
+        link.classList.add("text-gray-300");
       });
 
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-      import {
-        getFirestore,
-        collection,
-        getDocs,
-        deleteDoc,
-        doc,
-        onSnapshot,
-        query,
-      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
-        authDomain: "qltv-7c9be.firebaseapp.com",
-        projectId: "qltv-7c9be",
-        storageBucket: "qltv-7c9be.firebasestorage.app",
-        messagingSenderId: "411515029850",
-        appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-      let categories = [];
-      let unsubscribe = null;
-
-      async function loadCategories() {
-        try {
-          const querySnapshot = await getDocs(collection(db, "categories"));
-          categories = querySnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-        } catch (error) {
-          console.error("Error loading categories:", error);
-          showToast("Lỗi khi tải danh mục!", "error");
-        }
+      if (currentPath.includes("/books/")) {
+        document
+          .getElementById("books-link")
+          .classList.add("bg-gray-900", "text-white");
+        document
+          .getElementById("books-link")
+          .classList.remove("text-gray-300");
+      } else if (currentPath.includes("/category/")) {
+        document
+          .getElementById("category-link")
+          .classList.add("bg-gray-900", "text-white");
+        document
+          .getElementById("category-link")
+          .classList.remove("text-gray-300");
+      } else if (currentPath.includes("/user/")) {
+        document
+          .getElementById("users-link")
+          .classList.add("bg-gray-900", "text-white");
+        document
+          .getElementById("users-link")
+          .classList.remove("text-gray-300");
+      } else if (currentPath.includes("/admin/order/")) {
+        document
+          .getElementById("orders-link")
+          .classList.add("bg-gray-900", "text-white");
+        document
+          .getElementById("orders-link")
+          .classList.remove("text-gray-300");
       }
+    });
 
-      async function setupRealtimeUpdates() {
-        if (unsubscribe) {
-          unsubscribe();
-        }
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      deleteDoc,
+      doc,
+      onSnapshot,
+      query,
+    } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-        const q = query(collection(db, "books"));
-        unsubscribe = onSnapshot(
-          q,
-          (querySnapshot) => {
-            renderBooks(querySnapshot);
-          },
-          (error) => {
-            console.error("Error listening to books collection:", error);
-            showToast("Lỗi theo dõi dữ liệu!", "error");
-          }
-        );
-      }
+    const firebaseConfig = {
+      apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+      authDomain: "qltv-7c9be.firebaseapp.com",
+      projectId: "qltv-7c9be",
+      storageBucket: "qltv-7c9be.firebasestorage.app",
+      messagingSenderId: "411515029850",
+      appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+    };
 
-      function renderBooks(querySnapshot) {
-        const bookList = document.getElementById("bookList");
-        bookList.innerHTML = "";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let categories = [];
+    let unsubscribe = null;
 
-        if (querySnapshot.empty) {
-          bookList.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="p-4 text-center text-gray-500">
-                            Không có dữ liệu sách
-                        </td>
-                    </tr>
-                `;
-          return;
-        }
+    async function loadCategories() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "categories"));
+        categories = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-        querySnapshot.forEach((doc) => {
-          const book = doc.data();
-          const defaultImageUrl =
-            "https://via.placeholder.com/50x70?text=No+Image";
-          const imageUrl =
-            book.imageUrl && book.imageUrl.trim() !== ""
-              ? book.imageUrl
-              : defaultImageUrl;
-          const category = categories.find((c) => c.id === book.genreId);
-
-          bookList.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-3">
-                            <img src="${imageUrl}" alt="${book.title}" 
-                                class="w-12 h-16 object-cover" 
-                                onerror="this.src='${defaultImageUrl}'">
-                        </td>
-                        <td class="p-3">${book.title}</td>
-                        <td class="p-3">${book.author}</td>
-                        <td class="p-3">${
-                          category ? category.name : "Không xác định"
-                        }</td>
-                        <td class="p-3">${formatPrice(book.price)}</td>
-                        <td class="p-3">
-                            <div class="max-w-xs overflow-hidden text-ellipsis">
-                                ${book.description || "Không có mô tả"}
-                            </div>
-                        </td>
-                        <td class="p-3 text-center">
-                            <a href="edit.html?id=${doc.id}" 
-                                class="text-blue-500 hover:text-blue-600 mr-4">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button onclick="deleteBook('${doc.id}')" 
-                                class="text-red-500 hover:text-red-600">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+        // Populate category filter
+        const categoryFilter = document.getElementById('categoryFilter');
+        categoryFilter.innerHTML = '<option value="">Tất cả thể loại</option>';
+        categories.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category.id;
+          option.textContent = category.name;
+          categoryFilter.appendChild(option);
         });
+      } catch (error) {
+        console.error("Error loading categories:", error);
+        showToast("Lỗi khi tải danh mục!", "error");
+      }
+    }
+
+    async function setupRealtimeUpdates() {
+      if (unsubscribe) {
+        unsubscribe();
       }
 
-      window.deleteBook = async (id) => {
-        if (!confirm("Bạn có chắc chắn muốn xóa sách này?")) return;
-
-        try {
-          await deleteDoc(doc(db, "books", id));
-          showToast("Xóa sách thành công!", "success");
-        } catch (error) {
-          showToast("Lỗi khi xóa sách!", "error");
-          console.error("Lỗi khi xóa sách:", error);
+      const q = query(collection(db, "books"));
+      unsubscribe = onSnapshot(
+        q,
+        (querySnapshot) => {
+          allBooks = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          applyFilters();
+        },
+        (error) => {
+          console.error("Error listening to books collection:", error);
+          showToast("Lỗi theo dõi dữ liệu!", "error");
         }
-      };
+      );
+    }
 
-      function showToast(message, type = "info") {
-        const toast = document.createElement("div");
-        toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${
-          type === "success"
-            ? "bg-green-500"
-            : type === "error"
-            ? "bg-red-500"
-            : type === "warning"
+    let allBooks = [];
+    let debounceTimeout;
+
+    function applyFilters() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const selectedCategoryId = document.getElementById('categoryFilter').value;
+
+      console.log(allBooks);
+
+      const filteredBooks = allBooks.filter(book => {
+        const matchesSearch = book.title.toLowerCase().includes(searchTerm) ||
+          book.author.toLowerCase().includes(searchTerm);
+        const matchesCategory = !selectedCategoryId || book.genreId === selectedCategoryId;
+        return matchesSearch && matchesCategory;
+      });
+
+      renderBooks(filteredBooks);
+    }
+
+    function renderBooks(books) {
+      const bookList = document.getElementById("bookList");
+      bookList.innerHTML = "";
+
+      if (books.length === 0) {
+        bookList.innerHTML = `
+      <tr>
+        <td colspan="7" class="p-4 text-center text-gray-500">
+          Không có dữ liệu sách
+        </td>
+      </tr>
+    `;
+        return;
+      }
+
+      books.forEach(book => {
+        const defaultImageUrl = "https://via.placeholder.com/50x70?text=No+Image";
+        const imageUrl = book.imageUrl && book.imageUrl.trim() !== "" ? book.imageUrl : defaultImageUrl;
+        const category = categories.find(c => c.id === book.genreId);
+
+        bookList.innerHTML += `
+      <tr class="hover:bg-gray-50">
+        <td class="p-3">
+          <img src="${imageUrl}" alt="${book.title}" 
+               class="w-12 h-16 object-cover" 
+               onerror="this.src='${defaultImageUrl}'">
+        </td>
+        <td class="p-3">${book.title}</td>
+        <td class="p-3">${book.author}</td>
+        <td class="p-3">${category ? category.name : "Không xác định"}</td>
+        <td class="p-3">${formatPrice(book.price)}</td>
+        <td class="p-3">
+          <div class="max-w-xs overflow-hidden text-ellipsis">
+            ${book.description || "Không có mô tả"}
+          </div>
+        </td>
+        <td class="p-3 text-center">
+          <a href="edit.html?id=${book.id}" 
+             class="text-blue-500 hover:text-blue-600 mr-4">
+            <i class="fas fa-edit"></i>
+          </a>
+          <button onclick="deleteBook('${book.id}')" 
+             class="text-red-500 hover:text-red-600">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+      });
+    }
+
+    window.deleteBook = async (id) => {
+      if (!confirm("Bạn có chắc chắn muốn xóa sách này?")) return;
+
+      try {
+        await deleteDoc(doc(db, "books", id));
+        showToast("Xóa sách thành công!", "success");
+      } catch (error) {
+        showToast("Lỗi khi xóa sách!", "error");
+        console.error("Lỗi khi xóa sách:", error);
+      }
+    };
+
+    function showToast(message, type = "info") {
+      const toast = document.createElement("div");
+      toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${type === "success"
+        ? "bg-green-500"
+        : type === "error"
+          ? "bg-red-500"
+          : type === "warning"
             ? "bg-yellow-500"
             : "bg-blue-500"
         } shadow-lg z-50`;
-        toast.innerHTML = `
+      toast.innerHTML = `
                 <div class="flex items-center">
-                    <i class="fas fa-${
-                      type === "success"
-                        ? "check-circle"
-                        : type === "error"
-                        ? "exclamation-circle"
-                        : type === "warning"
-                        ? "exclamation-triangle"
-                        : "info-circle"
-                    } mr-2"></i>
+                    <i class="fas fa-${type === "success"
+          ? "check-circle"
+          : type === "error"
+            ? "exclamation-circle"
+            : type === "warning"
+              ? "exclamation-triangle"
+              : "info-circle"
+        } mr-2"></i>
                     ${message}
                 </div>
             `;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-          toast.classList.add(
-            "opacity-0",
-            "transition-opacity",
-            "duration-300"
-          );
-          setTimeout(() => toast.remove(), 300);
-        }, 3000);
-      }
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add(
+          "opacity-0",
+          "transition-opacity",
+          "duration-300"
+        );
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
 
-      function formatPrice(price) {
-        return new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(price);
-      }
+    function formatPrice(price) {
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(price);
+    }
 
-      document.addEventListener("DOMContentLoaded", async () => {
-        await loadCategories();
-        setupRealtimeUpdates();
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadCategories();
+      setupRealtimeUpdates();
+
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          applyFilters();
+        }, 300);
       });
 
-      window.addEventListener("beforeunload", () => {
-        if (unsubscribe) {
-          unsubscribe();
+      document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+
+      const q = query(collection(db, "books"));
+      unsubscribe = onSnapshot(
+        q,
+        (querySnapshot) => {
+          allBooks = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          applyFilters();
+        },
+        (error) => {
+          console.error("Error listening to books collection:", error);
+          showToast("Lỗi theo dõi dữ liệu!", "error");
         }
-      });
-    </script>
-  </body>
+      );
+    });
+  </script>
+</body>
+
 </html>
