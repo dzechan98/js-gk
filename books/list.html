@@ -172,6 +172,7 @@
       document.getElementById("btnLogOut").addEventListener("click", async () => {
         if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
           await signOut(auth);
+          localStorage.removeItem('currentUser');
           window.location.href = "/authenticate/login.html";
         }
       });
@@ -230,7 +231,7 @@
       const searchTerm = document.getElementById('searchInput').value.toLowerCase();
       const selectedCategoryId = document.getElementById('categoryFilter').value;
 
-      console.log(allBooks);
+      // console.log(allBooks);
 
       const filteredBooks = allBooks.filter(book => {
         const matchesSearch = book.title.toLowerCase().includes(searchTerm) ||

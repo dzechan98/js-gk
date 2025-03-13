@@ -81,7 +81,6 @@
       if (user) {
         // User is logged in, redirect to main page
         window.location.href = '/books/list.html';
-        // auth.signOut();
       } else {
         // User is not logged in, show login form
         document.getElementById('loginContainer').classList.remove('hidden');
@@ -122,6 +121,7 @@
 
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         // Redirect handled by auth state listener
+        localStorage.setItem('currentUser', JSON.stringify(userCredential.user.email));
       } catch (error) {
         const loginButton = document.getElementById('loginButton');
         loginButton.disabled = false;

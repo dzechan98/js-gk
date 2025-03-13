@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,11 +8,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
+
 <body class="bg-gray-100 min-h-screen p-8">
   <div class="max-w-6xl mx-auto">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">Danh sách đơn hàng</h1>
-      <a href="list.html" class="text-blue-500 hover:text-blue-600">
+      <a href="../pages/list-book.html" class="text-blue-500 hover:text-blue-600">
         <i class="fas fa-arrow-left mr-2"></i>Quay lại
       </a>
     </div>
@@ -54,6 +56,7 @@
       query,
       where,
     } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
@@ -66,10 +69,21 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     // Fetch and display orders
     async function loadOrders() {
-      const userId = "YLsroeDcVZc5xVMkWiYT"; // Replace with actual user ID
+      // const queryUser = query(collection(db, 'users'), where('e-mail', '==', localStorage.getItem('currentUser')));
+      const queryUser = query(collection(db, 'users'), where('email', '==', localStorage.getItem('currentUser').substr(1, localStorage.getItem('currentUser').length - 2)));
+
+      const userSnapShot = await getDocs(queryUser);
+      let userId;
+
+      console.log(userSnapShot.empty);
+      userSnapShot.forEach((doc) => {
+        userId = doc.id;
+      });
+      
       const ordersRef = collection(db, "orders");
       const q = query(ordersRef, where("userId", "==", userId)); // Filter orders by user ID
       const querySnapshot = await getDocs(q);
@@ -96,8 +110,8 @@
             <td class="p-3">
               <div class="flex flex-col">
                 ${order.items
-                  .map(
-                    (item) => `
+            .map(
+              (item) => `
                   <div class="flex items-center mb-2">
                     <img src="${item.imageUrl}" alt="${item.title}" 
                          class="w-8 h-12 object-cover mr-2">
@@ -107,19 +121,18 @@
                     </div>
                   </div>
                 `
-                  )
-                  .join("")}
+            )
+            .join("")}
               </div>
             </td>
             <td class="p-3">${formatPrice(order.total)}</td>
             <td class="p-3">
-              <span class="px-2 py-1 text-sm rounded-full ${
-                order.status === "Đã hoàn thành"
-                  ? "bg-green-100 text-green-600"
-                  : order.status === "Đang xử lý"
-                  ? "bg-yellow-100 text-yellow-600"
-                  : "bg-red-100 text-red-600"
-              }">
+              <span class="px-2 py-1 text-sm rounded-full ${order.status === "Đã hoàn thành"
+            ? "bg-green-100 text-green-600"
+            : order.status === "Đang xử lý"
+              ? "bg-yellow-100 text-yellow-600"
+              : "bg-red-100 text-red-600"
+          }">
                 ${order.status}
               </span>
             </td>
@@ -153,4 +166,5 @@
     document.addEventListener("DOMContentLoaded", loadOrders);
   </script>
 </body>
+
 </html>
