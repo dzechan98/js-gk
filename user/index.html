@@ -61,7 +61,7 @@
         <form id="userForm" class="space-y-4">
           <input type="hidden" id="userId" />
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <!-- <div>
               <label class="block text-sm font-medium text-gray-700"
                 >First Name</label
               >
@@ -82,8 +82,8 @@
                 required
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
-            </div>
-            <div>
+            </div> -->
+            <!-- <div>
               <label class="block text-sm font-medium text-gray-700">Age</label>
               <input
                 type="number"
@@ -91,7 +91,7 @@
                 required
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
-            </div>
+            </div> -->
             <div>
               <label class="block text-sm font-medium text-gray-700"
                 >Email</label
@@ -129,7 +129,7 @@
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th
+                <!-- <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
                 >
                   Name
@@ -138,7 +138,7 @@
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
                 >
                   Age
-                </th>
+                </th> -->
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
                 >
@@ -159,7 +159,7 @@
       </div>
     </div>
 
-    <script>
+    <script type="module">
       import { checkAuthentication } from "../script.js";
 
       document.addEventListener("DOMContentLoaded", async function () {
@@ -233,11 +233,15 @@
 
           const userId = document.getElementById("userId").value;
           const userData = {
-            firstName: document.getElementById("firstName").value,
-            lastName: document.getElementById("lastName").value,
-            age: parseInt(document.getElementById("age").value),
+            // firstName: document.getElementById("firstName").value,
+            // lastName: document.getElementById("lastName").value,
+            // age: parseInt(document.getElementById("age").value),
             email: document.getElementById("email").value,
           };
+
+          // await updateDoc(doc(db, "users", userId), userData);
+          // showToast("Cập nhật thành công!", "success");
+
 
           try {
             if (userId) {
@@ -263,8 +267,6 @@
           const user = doc.data();
           const row = `
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">${user.firstName} ${user.lastName}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${user.age}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <button onclick="editUser('${doc.id}')" class="text-blue-600 hover:text-blue-900">Edit</button>
@@ -282,9 +284,9 @@
         const user = doc.data();
 
         document.getElementById("userId").value = id;
-        document.getElementById("firstName").value = user.firstName;
-        document.getElementById("lastName").value = user.lastName;
-        document.getElementById("age").value = user.age;
+        // document.getElementById("firstName").value = user.firstName;
+        // document.getElementById("lastName").value = user.lastName;
+        // document.getElementById("age").value = user.age;
         document.getElementById("email").value = user.email;
       };
 

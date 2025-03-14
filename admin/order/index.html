@@ -52,6 +52,14 @@
               </div>
             </div>
           </div>
+          <div>
+            <button
+              id="btnLogOut"
+              class="text-white bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg"
+            >
+              Log Out
+            </button>
+          </div>
         </div>
       </div>
     </nav>
@@ -129,7 +137,13 @@
     </div>
 
     <script type="module">
-      import { checkAuthentication } from "../script.js";
+      import { checkAuthentication } from "../../script.js";
+      import {
+        getAuth,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+
+      
 
       document.addEventListener("DOMContentLoaded", async function () {
         const currentPath = window.location.pathname;
@@ -172,6 +186,16 @@
         if (userInfo.role != "admin") {
           window.location.href = "/authenticate/deniedAccess.html";
         }
+
+        document
+          .getElementById("btnLogOut")
+          .addEventListener("click", async () => {
+            if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+              await signOut(auth);
+              localStorage.removeItem("currentUser");
+              window.location.href = "/authenticate/login.html";
+            }
+          });
       });
 
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
@@ -198,6 +222,7 @@
 
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
+      const auth = getAuth(app);
       let allOrders = [];
 
       // Real-time orders listener
@@ -263,7 +288,7 @@
           <tr class="hover:bg-gray-50">
             <td class="p-3 font-medium">${order.id}</td>
             <td class="p-3">${
-              order.user.firstName + " " + order.user.lastName
+              order.user.email
             }</td>
             <td class="p-3">
               <div class="flex flex-col">
