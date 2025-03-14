@@ -61,12 +61,6 @@
                 >
                   <i class="fas fa-user mr-2"></i> Hồ sơ
                 </a>
-                <a
-                  href="settings.html"
-                  class="block px-4 py-2 text-gray-700 hover:bg-blue-500 hover:text-white"
-                >
-                  <i class="fas fa-cog mr-2"></i> Cài đặt
-                </a>
                 <div class="border-t border-gray-200 my-1"></div>
                 <button
                   id="logoutButton"
@@ -203,6 +197,10 @@
         getDoc,
         setDoc,
       } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+      import {
+        getAuth,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
@@ -215,6 +213,8 @@
 
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
+      const auth = getAuth(app);
+
       let categories = [];
       let unsubscribe = null;
       let allBooks = [];
@@ -282,6 +282,16 @@
             document.getElementById("status").classList.add("hidden");
           }
         );
+
+        document
+          .getElementById("logoutButton")
+          .addEventListener("click", async () => {
+            if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+              await signOut(auth);
+              localStorage.removeItem("currentUser");
+              window.location.href = "/authenticate/login.html";
+            }
+          });
       }
 
       function filterBooks() {

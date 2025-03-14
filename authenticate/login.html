@@ -82,7 +82,8 @@
       <p class="text-gray-600">Loading...</p>
     </div>
 
-    <script>
+    <script type="module">
+      import { checkRole } from "../script.js";
       // Firebase configuration (replace with your config)
       const firebaseConfig = {
         apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
@@ -107,7 +108,8 @@
 
         if (user) {
           // User is logged in, redirect to main page
-          window.location.href = "/pages/list-book.html";
+          checkRole();
+          //window.location.href = "/pages/list-book.html";
         } else {
           // User is not logged in, show login form
           document.getElementById("loginContainer").classList.remove("hidden");
