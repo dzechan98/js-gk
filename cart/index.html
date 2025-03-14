@@ -1,92 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giỏ hàng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Giỏ hàng</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-</head>
+  <body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Giỏ hàng</h1>
+        <a
+          href="../pages/list-book.html"
+          class="text-blue-500 hover:text-blue-600"
+        >
+          <i class="fas fa-arrow-left mr-2"></i>Quay lại
+        </a>
+      </div>
 
-<body class="bg-gray-100 min-h-screen p-8">
-  <div class="max-w-6xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Giỏ hàng</h1>
-      <a href="../pages/list-book.html" class="text-blue-500 hover:text-blue-600">
-        <i class="fas fa-arrow-left mr-2"></i>Quay lại
-      </a>
-    </div>
+      <!-- Cart Items -->
+      <div id="cartItems" class="bg-white rounded-lg shadow-md p-6">
+        <div id="loading" class="text-center text-gray-500">
+          <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
+        </div>
+      </div>
 
-    <!-- Cart Items -->
-    <div id="cartItems" class="bg-white rounded-lg shadow-md p-6">
-      <div id="loading" class="text-center text-gray-500">
-        <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
+      <!-- Place Order Button -->
+      <div class="mt-6 text-right">
+        <button
+          onclick="placeOrder()"
+          class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          <i class="fas fa-check mr-2"></i>Đặt hàng
+        </button>
       </div>
     </div>
 
-    <!-- Place Order Button -->
-    <div class="mt-6 text-right">
-      <button onclick="placeOrder()"
-        class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-        <i class="fas fa-check mr-2"></i>Đặt hàng
-      </button>
-    </div>
-  </div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        setDoc,
+        query,
+        where,
+        collection,
+        getDocs,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-      collection,
-      getDocs,
-      addDoc,
-    } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+      const firebaseConfig = {
+        apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+        authDomain: "qltv-7c9be.firebaseapp.com",
+        projectId: "qltv-7c9be",
+        storageBucket: "qltv-7c9be.firebasestorage.app",
+        messagingSenderId: "411515029850",
+        appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+      };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
-      authDomain: "qltv-7c9be.firebaseapp.com",
-      projectId: "qltv-7c9be",
-      storageBucket: "qltv-7c9be.firebasestorage.app",
-      messagingSenderId: "411515029850",
-      appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
-    };
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+      async function getUser(email) {
+        let res;
+        const q = query(collection(db, "users"), where("email", "==", email));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          res = doc.id;
+        });
 
-    // Load cart items
-    async function loadCart() {
-      const userId = "user1"; // Replace with actual user ID
-      const cartRef = doc(db, "carts", userId);
-      const cartDoc = await getDoc(cartRef);
+        return res;
+      }
 
-      if (cartDoc.exists()) {
-        const cartItems = cartDoc.data().items;
-        const bookList = await getDocs(collection(db, "books"));
-        const books = bookList.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      // Load cart items
+      async function loadCart() {
+        const userId = await getUser(
+          localStorage
+            .getItem("currentUser")
+            .substr(1, localStorage.getItem("currentUser").length - 2)
+        );
+        const cartRef = doc(db, "carts", userId);
+        const cartDoc = await getDoc(cartRef);
 
-        const cartItemsContainer = document.getElementById("cartItems");
-        cartItemsContainer.innerHTML = "";
+        console.log(cartDoc);
 
-        if (cartItems.length === 0) {
-          cartItemsContainer.innerHTML = `
+        if (cartDoc.exists()) {
+          const cartItems = cartDoc.data().items;
+          const bookList = await getDocs(collection(db, "books"));
+          const books = bookList.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          const cartItemsContainer = document.getElementById("cartItems");
+          cartItemsContainer.innerHTML = "";
+
+          if (cartItems.length === 0) {
+            cartItemsContainer.innerHTML = `
             <div class="text-center text-gray-500">
               Giỏ hàng trống
             </div>
           `;
-          return;
-        }
+            return;
+          }
 
-        let total = 0;
-        cartItems.forEach((item) => {
-          const book = books.find((b) => b.id === item.bookId);
-          if (book) {
-            total += book.price * item.quantity;
-            cartItemsContainer.innerHTML += `
+          let total = 0;
+          cartItems.forEach((item) => {
+            const book = books.find((b) => b.id === item.bookId);
+            if (book) {
+              total += book.price * item.quantity;
+              cartItemsContainer.innerHTML += `
               <div class="flex items-center justify-between border-b pb-4 mb-4">
                 <div class="flex items-center">
                   <img src="${book.imageUrl}" alt="${book.title}" 
@@ -94,14 +123,20 @@
                   <div>
                     <h3 class="text-lg font-semibold">${book.title}</h3>
                     <p class="text-sm text-gray-600">${book.author}</p>
-                    <p class="text-lg font-bold text-blue-600">${formatPrice(book.price)}</p>
+                    <p class="text-lg font-bold text-blue-600">${formatPrice(
+                      book.price
+                    )}</p>
                     <div class="flex items-center mt-2">
-                      <button onclick="updateQuantity('${item.bookId}', ${item.quantity - 1})" 
+                      <button onclick="updateQuantity('${item.bookId}', ${
+                item.quantity - 1
+              })" 
                               class="text-gray-500 hover:text-gray-700">
                         <i class="fas fa-minus"></i>
                       </button>
                       <span class="mx-2">${item.quantity}</span>
-                      <button onclick="updateQuantity('${item.bookId}', ${item.quantity + 1})" 
+                      <button onclick="updateQuantity('${item.bookId}', ${
+                item.quantity + 1
+              })" 
                               class="text-gray-500 hover:text-gray-700">
                         <i class="fas fa-plus"></i>
                       </button>
@@ -114,161 +149,181 @@
                 </button>
               </div>
             `;
-          }
-        });
+            }
+          });
 
-        // Display total price
-        cartItemsContainer.innerHTML += `
+          // Display total price
+          cartItemsContainer.innerHTML += `
           <div class="flex justify-end mt-4">
             <p class="text-xl font-bold">Tổng tiền: ${formatPrice(total)}</p>
           </div>
         `;
-      } else {
-        document.getElementById("cartItems").innerHTML = `
+        } else {
+          document.getElementById("cartItems").innerHTML = `
           <div class="text-center text-gray-500">
             Giỏ hàng trống
           </div>
         `;
+        }
       }
-    }
 
-    // Update quantity of a cart item
-    window.updateQuantity = async (bookId, newQuantity) => {
-      const userId = "user1"; // Replace with actual user ID
-      const cartRef = doc(db, "carts", userId);
-      const cartDoc = await getDoc(cartRef);
+      // Update quantity of a cart item
+      window.updateQuantity = async (bookId, newQuantity) => {
+        const userId = await getUser(
+          localStorage
+            .getItem("currentUser")
+            .substr(1, localStorage.getItem("currentUser").length - 2)
+        );
+        const cartRef = doc(db, "carts", userId);
+        const cartDoc = await getDoc(cartRef);
 
-      if (cartDoc.exists()) {
-        const cartData = cartDoc.data();
-        const itemIndex = cartData.items.findIndex((item) => item.bookId === bookId);
+        if (cartDoc.exists()) {
+          const cartData = cartDoc.data();
+          const itemIndex = cartData.items.findIndex(
+            (item) => item.bookId === bookId
+          );
 
-        if (itemIndex !== -1) {
-          if (newQuantity <= 0) {
-            // Remove the item if quantity is 0 or less
-            cartData.items.splice(itemIndex, 1);
-          } else {
-            // Update the quantity
-            cartData.items[itemIndex].quantity = newQuantity;
+          if (itemIndex !== -1) {
+            if (newQuantity <= 0) {
+              // Remove the item if quantity is 0 or less
+              cartData.items.splice(itemIndex, 1);
+            } else {
+              // Update the quantity
+              cartData.items[itemIndex].quantity = newQuantity;
+            }
+
+            await setDoc(cartRef, { items: cartData.items });
+            loadCart();
+            showToast("Đã cập nhật giỏ hàng!", "success");
           }
+        }
+      };
 
+      // Remove item from cart
+      window.removeFromCart = async (bookId) => {
+        const userId = await getUser(
+          localStorage
+            .getItem("currentUser")
+            .substr(1, localStorage.getItem("currentUser").length - 2)
+        );
+        const cartRef = doc(db, "carts", userId);
+        const cartDoc = await getDoc(cartRef);
+
+        if (cartDoc.exists()) {
+          const cartData = cartDoc.data();
+          cartData.items = cartData.items.filter(
+            (item) => item.bookId !== bookId
+          );
           await setDoc(cartRef, { items: cartData.items });
           loadCart();
-          showToast("Đã cập nhật giỏ hàng!", "success");
+          showToast("Đã xóa sách khỏi giỏ hàng!", "success");
         }
-      }
-    };
+      };
 
-    // Remove item from cart
-    window.removeFromCart = async (bookId) => {
-      const userId = "user1"; // Replace with actual user ID
-      const cartRef = doc(db, "carts", userId);
-      const cartDoc = await getDoc(cartRef);
+      // Place order
+      window.placeOrder = async () => {
+        const userId = await getUser(
+          localStorage
+            .getItem("currentUser")
+            .substr(1, localStorage.getItem("currentUser").length - 2)
+        );
+        const cartRef = doc(db, "carts", userId);
+        const cartDoc = await getDoc(cartRef);
 
-      if (cartDoc.exists()) {
-        const cartData = cartDoc.data();
-        cartData.items = cartData.items.filter((item) => item.bookId !== bookId);
-        await setDoc(cartRef, { items: cartData.items });
-        loadCart();
-        showToast("Đã xóa sách khỏi giỏ hàng!", "success");
-      }
-    };
+        if (cartDoc.exists()) {
+          const cartData = cartDoc.data();
+          if (cartData.items.length === 0) {
+            showToast("Giỏ hàng trống!", "warning");
+            return;
+          }
 
-    // Place order
-    window.placeOrder = async () => {
-      const userId = "user1"; // Replace with actual user ID
-      const cartRef = doc(db, "carts", userId);
-      const cartDoc = await getDoc(cartRef);
+          // Calculate total price
+          const bookList = await getDocs(collection(db, "books"));
+          const books = bookList.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          let total = 0;
+          const orderItems = cartData.items.map((item) => {
+            const book = books.find((b) => b.id === item.bookId);
+            total += book.price * item.quantity;
+            return {
+              bookId: item.bookId,
+              title: book.title,
+              imageUrl: book.imageUrl,
+              price: book.price,
+              quantity: item.quantity,
+            };
+          });
 
-      if (cartDoc.exists()) {
-        const cartData = cartDoc.data();
-        if (cartData.items.length === 0) {
-          showToast("Giỏ hàng trống!", "warning");
-          return;
-        }
-
-        // Calculate total price
-        const bookList = await getDocs(collection(db, "books"));
-        const books = bookList.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        let total = 0;
-        const orderItems = cartData.items.map((item) => {
-          const book = books.find((b) => b.id === item.bookId);
-          total += book.price * item.quantity;
-          return {
-            bookId: item.bookId,
-            title: book.title,
-            imageUrl: book.imageUrl,
-            price: book.price,
-            quantity: item.quantity,
+          // Create order
+          const orderData = {
+            userId,
+            items: orderItems,
+            total,
+            status: "Pending",
+            createdAt: new Date(),
           };
-        });
 
-        // Create order
-        const orderData = {
-          userId,
-          items: orderItems,
-          total,
-          status: "Pending",
-          createdAt: new Date(),
-        };
-
-        try {
-          await addDoc(collection(db, "orders"), orderData);
-          await setDoc(cartRef, { items: [] }); // Clear the cart
-          showToast("Đặt hàng thành công!", "success");
-          loadCart();
-        } catch (error) {
-          showToast("Lỗi khi đặt hàng!", "error");
-          console.error(error);
+          try {
+            await addDoc(collection(db, "orders"), orderData);
+            await setDoc(cartRef, { items: [] }); // Clear the cart
+            showToast("Đặt hàng thành công!", "success");
+            loadCart();
+          } catch (error) {
+            showToast("Lỗi khi đặt hàng!", "error");
+            console.error(error);
+          }
         }
+      };
+
+      // Format price
+      function formatPrice(price) {
+        return new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(price);
       }
-    };
 
-    // Format price
-    function formatPrice(price) {
-      return new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-      }).format(price);
-    }
-
-    // Show toast notifications
-    function showToast(message, type = "info") {
-      const toast = document.createElement("div");
-      toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${type === "success"
-          ? "bg-green-500"
-          : type === "error"
+      // Show toast notifications
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${
+          type === "success"
+            ? "bg-green-500"
+            : type === "error"
             ? "bg-red-500"
             : type === "warning"
-              ? "bg-yellow-500"
-              : "bg-blue-500"
+            ? "bg-yellow-500"
+            : "bg-blue-500"
         } shadow-lg z-50`;
-      toast.innerHTML = `
+        toast.innerHTML = `
         <div class="flex items-center">
-          <i class="fas fa-${type === "success"
-          ? "check-circle"
-          : type === "error"
-            ? "exclamation-circle"
-            : type === "warning"
+          <i class="fas fa-${
+            type === "success"
+              ? "check-circle"
+              : type === "error"
+              ? "exclamation-circle"
+              : type === "warning"
               ? "exclamation-triangle"
               : "info-circle"
-        } mr-2"></i>
+          } mr-2"></i>
           ${message}
         </div>
       `;
-      document.body.appendChild(toast);
-      setTimeout(() => {
-        toast.classList.add(
-          "opacity-0",
-          "transition-opacity",
-          "duration-300"
-        );
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-    }
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add(
+            "opacity-0",
+            "transition-opacity",
+            "duration-300"
+          );
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
 
-    // Initialize
-    document.addEventListener("DOMContentLoaded", loadCart);
-  </script>
-</body>
-
+      // Initialize
+      document.addEventListener("DOMContentLoaded", loadCart);
+    </script>
+  </body>
 </html>

@@ -99,7 +99,8 @@
     </div>
 
     <script type="module">
-      document.addEventListener("DOMContentLoaded", function () {
+      import { checkAuthentication } from "../script.js";
+      document.addEventListener("DOMContentLoaded", async function () {
         const currentPath = window.location.pathname;
 
         document.querySelectorAll("nav a").forEach((link) => {
@@ -135,6 +136,10 @@
           document
             .getElementById("orders-link")
             .classList.remove("text-gray-300");
+        }
+        const userInfo = await checkAuthentication();
+        if (userInfo.role != "admin") {
+          window.location.href = "/authenticate/deniedAccess.html";
         }
       });
 

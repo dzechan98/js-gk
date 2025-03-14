@@ -129,7 +129,9 @@
     </div>
 
     <script type="module">
-      document.addEventListener("DOMContentLoaded", function () {
+      import { checkAuthentication } from "../script.js";
+
+      document.addEventListener("DOMContentLoaded", async function () {
         const currentPath = window.location.pathname;
 
         document.querySelectorAll("nav a").forEach((link) => {
@@ -165,6 +167,10 @@
           document
             .getElementById("orders-link")
             .classList.remove("text-gray-300");
+        }
+        const userInfo = await checkAuthentication();
+        if (userInfo.role != "admin") {
+          window.location.href = "/authenticate/deniedAccess.html";
         }
       });
 
@@ -265,7 +271,7 @@
                   .map(
                     (item) => `
                   <div class="flex items-center mb-2">
-                    <img src="${item.imageUrl}" alt="${item.title}" 
+                    <img src="${item.imageUrl}" alt="${item.title}"
                          class="w-8 h-12 object-cover mr-2">
                     <div>
                       <p class="text-sm">${item.title}</p>
@@ -279,7 +285,7 @@
             </td>
             <td class="p-3">${formatPrice(order.total)}</td>
             <td class="p-3">
-              <select id="status-${order.id}" 
+              <select id="status-${order.id}"
                       class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       onchange="updateOrderStatus('${order.id}', this.value)">
                 <option value="Pending" ${
@@ -295,7 +301,7 @@
             </td>
             <td class="p-3">${order.createdAt?.toLocaleString() || "N/A"}</td>
             <td class="p-3 text-center">
-              <button onclick="viewOrderDetails('${order.id}')" 
+              <button onclick="viewOrderDetails('${order.id}')"
                       class="text-blue-500 hover:text-blue-600">
                 <i class="fas fa-eye"></i>
               </button>

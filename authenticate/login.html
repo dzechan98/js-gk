@@ -1,163 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-</head>
+  <body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div
+      class="bg-white p-8 rounded-lg shadow-md w-96 hidden"
+      id="loginContainer"
+    >
+      <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label
+            for="loginEmail"
+            class="block text-sm font-medium text-gray-700"
+            >Email</label
+          >
+          <input
+            type="email"
+            id="loginEmail"
+            name="email"
+            required
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            autocomplete="email"
+          />
+          <span class="text-red-500 text-sm hidden" id="emailError"></span>
+        </div>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-  <div class="bg-white p-8 rounded-lg shadow-md w-96 hidden" id="loginContainer">
-    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
-    <form id="loginForm" class="space-y-4">
-      <div>
-        <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
-        <input type="email" id="loginEmail" name="email" required
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          autocomplete="email">
-        <span class="text-red-500 text-sm hidden" id="emailError"></span>
-      </div>
+        <div>
+          <label
+            for="loginPassword"
+            class="block text-sm font-medium text-gray-700"
+            >Password</label
+          >
+          <input
+            type="password"
+            id="loginPassword"
+            name="password"
+            required
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            autocomplete="current-password"
+          />
+          <span class="text-red-500 text-sm hidden" id="passwordError"></span>
+        </div>
 
-      <div>
-        <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
-        <input type="password" id="loginPassword" name="password" required
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          autocomplete="current-password">
-        <span class="text-red-500 text-sm hidden" id="passwordError"></span>
-      </div>
+        <div class="flex items-center justify-between">
+          <button
+            type="submit"
+            id="loginButton"
+            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
 
-      <div class="flex items-center justify-between">
-        <button type="submit" id="loginButton"
-          class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-          Sign In
-        </button>
-      </div>
+        <p class="text-center text-sm text-gray-600">
+          Don't have an account?
+          <a href="./register.html" class="text-blue-600 hover:text-blue-800"
+            >Register here</a
+          >
+        </p>
+      </form>
+    </div>
 
-      <p class="text-center text-sm text-gray-600">
-        Don't have an account?
-        <a href="./register.html" class="text-blue-600 hover:text-blue-800">Register here</a>
-      </p>
-    </form>
-  </div>
-
-  <!-- Loading Spinner -->
-  <!-- <div id="loadingSpinner" class="fixed inset-0 bg-gray-100 bg-opacity-75 flex items-center justify-center">
+    <!-- Loading Spinner -->
+    <!-- <div id="loadingSpinner" class="fixed inset-0 bg-gray-100 bg-opacity-75 flex items-center justify-center">
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
   </div> -->
 
-  <div id="loadingSpinner" class="text-center space-y-4">
-    <div class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-    <p class="text-gray-600">Loading...</p>
-  </div>
+    <div id="loadingSpinner" class="text-center space-y-4">
+      <div
+        class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 rounded-full border-t-transparent"
+      ></div>
+      <p class="text-gray-600">Loading...</p>
+    </div>
 
-  <script>
-    // Firebase configuration (replace with your config)
-    const firebaseConfig = {
-      apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
-      authDomain: "qltv-7c9be.firebaseapp.com",
-      projectId: "qltv-7c9be",
-      storageBucket: "qltv-7c9be.firebasestorage.app",
-      messagingSenderId: "411515029850",
-      appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
-    };
+    <script type="module">
+      import { checkRole } from "../script.js";
+      // Firebase configuration (replace with your config)
+      const firebaseConfig = {
+        apiKey: "AIzaSyDu0e6f9V1Es0L1KOJ_amQ9EJ6Zz-RhE7A",
+        authDomain: "qltv-7c9be.firebaseapp.com",
+        projectId: "qltv-7c9be",
+        storageBucket: "qltv-7c9be.firebasestorage.app",
+        messagingSenderId: "411515029850",
+        appId: "1:411515029850:web:cc90d42dc1bd4712ad0b63",
+      };
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
 
-    // Show loading spinner
-    document.getElementById('loadingSpinner').classList.remove('hidden');
+      // Show loading spinner
+      document.getElementById("loadingSpinner").classList.remove("hidden");
 
-    // Check authentication state
-    auth.onAuthStateChanged((user) => {
-      // Hide loading spinner
-      document.getElementById('loadingSpinner').classList.add('hidden');
+      // Check authentication state
+      auth.onAuthStateChanged((user) => {
+        // Hide loading spinner
+        document.getElementById("loadingSpinner").classList.add("hidden");
 
-      if (user) {
-        // User is logged in, redirect to main page
-        window.location.href = '/books/list.html';
-      } else {
-        // User is not logged in, show login form
-        document.getElementById('loginContainer').classList.remove('hidden');
-      }
-    });
-
-    // Form validation
-    function validateLoginForm(email, password) {
-      let isValid = true;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      // Clear previous errors
-      document.querySelectorAll('.text-red-500').forEach(el => el.classList.add('hidden'));
-
-      // Email validation
-      if (!emailRegex.test(email)) {
-        document.getElementById('emailError').textContent = 'Please enter a valid email address';
-        document.getElementById('emailError').classList.remove('hidden');
-        isValid = false;
-      }
-
-      // Password validation
-      if (password.length < 6) {
-        document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
-        document.getElementById('passwordError').classList.remove('hidden');
-        isValid = false;
-      }
-
-      return isValid;
-    }
-
-    // Login function
-    async function loginUser(email, password) {
-      try {
-        const loginButton = document.getElementById('loginButton');
-        loginButton.disabled = true;
-        loginButton.innerHTML = 'Logging in...';
-
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        // Redirect handled by auth state listener
-        localStorage.setItem('currentUser', JSON.stringify(userCredential.user.email));
-      } catch (error) {
-        const loginButton = document.getElementById('loginButton');
-        loginButton.disabled = false;
-        loginButton.innerHTML = 'Sign In';
-
-        let errorMessage = 'Login failed. Please try again.';
-        switch (error.code) {
-          case 'auth/user-not-found':
-            errorMessage = 'User not found';
-            break;
-          case 'auth/wrong-password':
-            errorMessage = 'Incorrect password';
-            break;
-          case 'auth/invalid-email':
-            errorMessage = 'Invalid email address';
-            break;
-          case 'auth/user-disabled':
-            errorMessage = 'Account disabled';
-            break;
+        if (user) {
+          // User is logged in, redirect to main page
+          checkRole();
+          //window.location.href = "/pages/list-book.html";
+        } else {
+          // User is not logged in, show login form
+          document.getElementById("loginContainer").classList.remove("hidden");
         }
-        alert(errorMessage);
+      });
+
+      // Form validation
+      function validateLoginForm(email, password) {
+        let isValid = true;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // Clear previous errors
+        document
+          .querySelectorAll(".text-red-500")
+          .forEach((el) => el.classList.add("hidden"));
+
+        // Email validation
+        if (!emailRegex.test(email)) {
+          document.getElementById("emailError").textContent =
+            "Please enter a valid email address";
+          document.getElementById("emailError").classList.remove("hidden");
+          isValid = false;
+        }
+
+        // Password validation
+        if (password.length < 6) {
+          document.getElementById("passwordError").textContent =
+            "Password must be at least 6 characters";
+          document.getElementById("passwordError").classList.remove("hidden");
+          isValid = false;
+        }
+
+        return isValid;
       }
-    }
 
-    // Form submission handler
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+      // Login function
+      async function loginUser(email, password) {
+        try {
+          const loginButton = document.getElementById("loginButton");
+          loginButton.disabled = true;
+          loginButton.innerHTML = "Logging in...";
 
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
+          const userCredential = await auth.signInWithEmailAndPassword(
+            email,
+            password
+          );
+          // Redirect handled by auth state listener
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify(userCredential.user.email)
+          );
+        } catch (error) {
+          const loginButton = document.getElementById("loginButton");
+          loginButton.disabled = false;
+          loginButton.innerHTML = "Sign In";
 
-      if (validateLoginForm(email, password)) {
-        await loginUser(email, password);
+          let errorMessage = "Login failed. Please try again.";
+          switch (error.code) {
+            case "auth/user-not-found":
+              errorMessage = "User not found";
+              break;
+            case "auth/wrong-password":
+              errorMessage = "Incorrect password";
+              break;
+            case "auth/invalid-email":
+              errorMessage = "Invalid email address";
+              break;
+            case "auth/user-disabled":
+              errorMessage = "Account disabled";
+              break;
+          }
+          alert(errorMessage);
+        }
       }
-    });
-  </script>
-</body>
 
+      // Form submission handler
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const email = document.getElementById("loginEmail").value;
+          const password = document.getElementById("loginPassword").value;
+
+          if (validateLoginForm(email, password)) {
+            await loginUser(email, password);
+          }
+        });
+    </script>
+  </body>
 </html>
