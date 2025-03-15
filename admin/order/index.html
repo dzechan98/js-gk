@@ -85,6 +85,7 @@
             </div>
             <div>
               <select
+                onchange="applyFilters()"
                 id="statusFilter"
                 class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -224,6 +225,7 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
       let allOrders = [];
+      let debounceTimeout;
 
       // Real-time orders listener
       const unsubscribe = onSnapshot(
@@ -245,6 +247,18 @@
           );
 
           document.getElementById("loading").style.display = "none";
+
+          document
+          .getElementById("searchInput")
+          .addEventListener("input", (e) => {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+              applyFilters();
+            }, 300);
+          });
+          document.getElementById("statusFilter").addEventListener("change", () =>
+            applyFilters()
+          );
           applyFilters();
         }
       );
