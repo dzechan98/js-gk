@@ -43,7 +43,7 @@
                   Người dùng
                 </a>
                 <a
-                  href="/admin/order/index.html"
+                  href="/admin-order/index.html"
                   class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 active:text-red-500 py-2 rounded-md text-sm font-medium"
                   id="orders-link"
                 >
@@ -143,8 +143,6 @@
         getAuth,
         signOut,
       } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-
-      
 
       document.addEventListener("DOMContentLoaded", async function () {
         const currentPath = window.location.pathname;
@@ -249,16 +247,16 @@
           document.getElementById("loading").style.display = "none";
 
           document
-          .getElementById("searchInput")
-          .addEventListener("input", (e) => {
-            clearTimeout(debounceTimeout);
-            debounceTimeout = setTimeout(() => {
-              applyFilters();
-            }, 300);
-          });
-          document.getElementById("statusFilter").addEventListener("change", () =>
-            applyFilters()
-          );
+            .getElementById("searchInput")
+            .addEventListener("input", (e) => {
+              clearTimeout(debounceTimeout);
+              debounceTimeout = setTimeout(() => {
+                applyFilters();
+              }, 300);
+            });
+          document
+            .getElementById("statusFilter")
+            .addEventListener("change", () => applyFilters());
           applyFilters();
         }
       );
@@ -301,9 +299,7 @@
           orderList.innerHTML += `
           <tr class="hover:bg-gray-50">
             <td class="p-3 font-medium">${order.id}</td>
-            <td class="p-3">${
-              order.user.email
-            }</td>
+            <td class="p-3">${order.user.email}</td>
             <td class="p-3">
               <div class="flex flex-col">
                 ${order.items
